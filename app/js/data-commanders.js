@@ -118,7 +118,7 @@ FD.COMMANDERS = [
         when: '55 BC',
         summary: 'Traders questioned about Britain could tell Caesar little about its harbours or peoples, so before embarking he sent the tribune Gaius Volusenus ahead in a warship to look for landing places. Volusenus returned on the fifth day having observed the shore without risking a landing. The report was thin, and the difficult opposed landing that followed shows the limits of reconnaissance done from the deck of a ship.',
         cite: 'Caesar, Gallic War 4.20–21',
-        url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/home.html'
+        url: 'https://en.wikipedia.org/wiki/Commentarii_de_Bello_Gallico'
       },
       {
         id: 'caesar-tempo',
@@ -127,7 +127,7 @@ FD.COMMANDERS = [
         when: '52 BC',
         summary: 'When revolt broke out in winter with Caesar cut off from his legions, he had his men clear a path through the Cévennes, where by his account the snow lay very deep, and appeared without warning in Arvernian territory. The raid drew Vercingetorix back to defend his own people. Caesar used the respite to hurry by another route to his army.',
         cite: 'Caesar, Gallic War 7.8–9',
-        url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/home.html'
+        url: 'https://en.wikipedia.org/wiki/Commentarii_de_Bello_Gallico'
       },
       {
         id: 'caesar-logistics',
