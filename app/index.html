@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; font-src 'self'; media-src 'self'">
+<title>Field Desk</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+  <header id="chrome">
+    <div id="tabstrip">
+      <div id="tabs" role="tablist"></div>
+      <button id="newtab-btn" class="icon-btn" title="New tab">+</button>
+      <div id="toast" aria-live="polite"></div>
+    </div>
+    <div id="toolbar">
+      <button id="back-btn" class="icon-btn" title="Back">&#8592;</button>
+      <button id="fwd-btn" class="icon-btn" title="Forward">&#8594;</button>
+      <button id="reload-btn" class="icon-btn" title="Reload">&#8635;</button>
+      <div id="address-wrap">
+        <input id="address" type="text" spellcheck="false" autocomplete="off" placeholder="Search or enter address" aria-label="Address and search">
+        <button id="star-btn" class="icon-btn" title="Bookmark this page">&#9734;</button>
+      </div>
+      <button id="split-btn" class="tool-btn" title="Split view">Split</button>
+      <button id="ws-btn" class="tool-btn" title="Workspaces"></button>
+      <button id="rail-btn" class="icon-btn" title="Show or collapse the desk rail">&#9776;</button>
+    </div>
+    <div id="suggest" hidden></div>
+    <div id="findbar" hidden>
+      <input id="find-input" type="text" placeholder="Find in page" spellcheck="false">
+      <span id="find-count"></span>
+      <button id="find-prev" class="icon-btn" title="Previous">&#8593;</button>
+      <button id="find-next" class="icon-btn" title="Next">&#8595;</button>
+      <button id="find-close" class="icon-btn" title="Close">&#215;</button>
+    </div>
+  </header>
+  <div id="body">
+    <main id="panes">
+      <section class="pane" id="pane-left"><div class="pane-head"></div><div class="pane-body"></div></section>
+      <div id="divider" title="Drag to resize. Double-click to centre."></div>
+      <section class="pane" id="pane-right"><div class="pane-head"></div><div class="pane-body"></div></section>
+    </main>
+    <aside id="drawer" hidden></aside>
+    <nav id="rail"></nav>
+  </div>
+</div>
+<script src="js/util.js"></script>
+<script src="js/data-commanders.js"></script>
+<script src="js/portraits.js"></script>
+<script src="js/data-ulm.js"></script>
+<script src="js/seed.js"></script>
+<script src="js/core.js"></script>
+<script src="js/drawer.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>

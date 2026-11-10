@@ -1,0 +1,16 @@
+{
+  "name": "fielddesk",
+  "productName": "Field Desk",
+  "version": "0.1.0",
+  "description": "A desktop browser for following one question across twenty tabs.",
+  "main": "src/main.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node bin/launch.js",
+    "test": "node test/run.js"
+  },
+  "devDependencies": {
+    "electron": "^45.2.3"
+  }
+}
