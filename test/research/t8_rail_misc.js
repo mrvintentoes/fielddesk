@@ -24,8 +24,8 @@ T.run('rail', async (base) => {
   if (!back.drawer) { await ui.click('#rail .pin[data-commander=caesar]'); await sleep(200); }
   check('pin click reopens compare', await ui.evaluate(() => FD.ws().drawer.open && FD.ws().drawer.panel === 'compare'));
   // ---- Hide button on the rail
-  await ui.click('#rail .rail-btn[title^="Collapse"]');
-  check('rail Hide button collapses', (await railHidden()) && (await drawerHidden()));
+  await ui.click('#rail-btn');
+  check('toolbar button collapses the rail again', (await railHidden()) && (await drawerHidden()));
   // ---- shortcut (menu item is what the accelerator fires)
   const acc = await T.appMenu(app, 'Collapse or Show the Desk Rail'); await sleep(200);
   check('shortcut menu item brings the rail back', !(await railHidden()), 'accelerator ' + acc);
@@ -53,21 +53,21 @@ T.run('rail', async (base) => {
   // ---- clip source reopened with a text fragment
   await ui.evaluate((u) => { FD.addClip({ commanderId: 'caesar', category: 'tempo', text: 'Sentence number 380 of a very long passage about marching tempo and supply.', url: u + '/A', title: 'Fixture A' }); FD.closeTab(FD.current().id); if (!(FD.ws().drawer.open && FD.ws().drawer.panel === 'compare')) FD.openPanel('compare'); }, base); await sleep(400);
   const n0 = (await T.ws(ui)).tabs.length;
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=tempo] .clip .clip-text'); await sleep(1800);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=tempo] .clip .clip-text'); await sleep(1800);
   const p = await T.viewPage(app, '/A');
   const info = { tabUrl: await ui.evaluate(() => FD.current().url), address: await ui.$eval('#address', (e) => e.value), scrollY: await p.evaluate(() => scrollY), n: (await T.ws(ui)).tabs.length };
   console.log('  reopened clip source:', JSON.stringify(info));
   check('clip reopens its closed source in a tab', info.n === n0 + 1 && info.tabUrl.startsWith(base + '/A'));
   check('reopened source is scrolled to the clipped passage', info.scrollY > 500, 'scrollY ' + info.scrollY);
   await ui.click('#tabs .tab:nth-child(1)'); await sleep(300);
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=tempo] .clip .clip-text'); await sleep(700);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=tempo] .clip .clip-text'); await sleep(700);
   check('second click focuses that tab instead of opening another', (await T.ws(ui)).tabs.length === n0 + 1 && await ui.evaluate((b) => FD.current().url.startsWith(b + '/A'), base));
   // clip whose source is open in the other split pane
   await ui.evaluate((u) => { FD.newTab(u + '/B', { typed: true }); }, base); await sleep(900);
   await ui.click('#split-btn'); await sleep(600);
   let w = await T.ws(ui);
   console.log('  split: left', w.tabs.find((t) => t.id === w.active).url.replace(base, ''), 'right', w.tabs.find((t) => t.id === w.split.right).url.replace(base, ''));
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=tempo] .clip .clip-text'); await sleep(700);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=tempo] .clip .clip-text'); await sleep(700);
   w = await T.ws(ui);
   const shownUrls = [w.active, w.split.right].map((id) => w.tabs.find((t) => t.id === id).url.replace(base, '').split('#')[0]);
   check('in split view, clicking a clip shows its source in one of the panes', shownUrls.includes('/A'), shownUrls.join(' | '));

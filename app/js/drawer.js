@@ -62,7 +62,7 @@
     if (!w.pins.includes(c.commanderId) && w.pins.length < 2) { w.pins.push(c.commanderId); FD.ensureCommander(c.commanderId); FD.pushPins(); }
     w.railCollapsed = false;
     S.flash = c.commanderId;
-    FD.renderRail(); FD.renderDrawer(); FD.touch();
+    FD.renderRail(); FD.renderDrawer(true); FD.touch();
     FD.toast('Clipped to ' + FD.commander(c.commanderId).name + '’s file' + (clip.category ? ' under ' + catLabel(clip.category).toLowerCase() : '') + (full.length > LIMIT ? ' (cut to the first 20,000 characters)' : ''));
     setTimeout(() => { S.flash = null; }, 1500);
     return clip;
@@ -297,6 +297,7 @@
           c.theme ? h('p', { class: 'file-theme' }, h('span', { class: 'file-swatch' }), c.theme.label) : null),
         FD.figureEl(c.id, 'file-figure'),
         h('button', { class: 'x big', title: 'Close the drawer', onclick: FD.toggleDrawer }, '×')),
+      FD.creditEl(c.id),
       segmented(w),
       questionField(w),
       ...(clips.length ? [PASSAGES, DECISIONS] : [DECISIONS, PASSAGES]),
@@ -373,6 +374,8 @@
         h('h3', null, 'What a pin changes'),
         h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: st.themes !== false, onchange: (e) => { st.themes = e.target.checked; FD.applyTheme(); FD.save(); } }),
           ' The pinned commander sets the look of the app'),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: st.portraits !== false, onchange: (e) => { st.portraits = e.target.checked; FD.save(); FD.renderDrawer(true); } }),
+          'Show paintings and photographs where one is on file (downloaded once from Wikimedia Commons)'),
         h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: st.remarks !== 'off', onchange: (e) => { st.remarks = e.target.checked ? 'sometimes' : 'off'; FD.save(); } }),
           ' He sometimes remarks on the page you open'),
         h('p', { class: 'muted small' }, 'With two pinned, the look follows whichever file you opened last. Remarks are in-character lines that ship with the app, chosen on this computer from the page’s address and title only. They are not quotations, and nothing about the page is sent anywhere.'))

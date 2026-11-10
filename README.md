@@ -91,19 +91,46 @@ to which, where you are, and which branches you abandoned. Click any entry to go
 ## Privacy and isolation
 
 - Tabs, workspaces, notes, clips, bookmarks and history live in one JSON file in the app's data
-  folder on your computer (`field-desk.json`). There is no account and no server.
+  folder on your computer (`field-desk.json`). There is no account and no server. The only thing
+  the app itself fetches is the set of commander portraits, once (see Portraits).
 - Every web page runs in its own sandboxed, context-isolated view with no Node access and no
   preload script, in a separate session from the app. Pages cannot reach the app's IPC or your notes.
 - Pages are refused camera, microphone, location and notification access.
 - The app's own window only ever loads the app.
 
+## Portraits
+
+The first time the app runs with an internet connection it downloads one picture per commander
+from Wikimedia Commons (a painting, a mosaic, a photograph, or a bust), about twenty small files,
+and keeps them in its data folder. After that it works offline and does not ask again. Each request
+names only the picture; nothing about you or your browsing is sent.
+
+- Which picture: the lead image of a Wikipedia article chosen in `src/portraits.js`, for example
+  David's *The Emperor Napoleon in His Study at the Tuileries* and Goya's *Portrait of the Duke of
+  Wellington*. For the ancient commanders these are later works or busts, and the app says so.
+- What is accepted: only files Commons records as public domain or CC0. For Caesar, Hannibal,
+  Scipio and Saladin, where the only likeness is an ancient object and the photograph has an
+  author, a CC BY or CC BY-SA photograph is also accepted and credited. Anything else is refused.
+- Credit: the title, artist, date, licence and a link, as Commons gives them, are shown under the
+  picture in the commander's file.
+- A commander with no acceptable picture keeps the drawn figure. No picture is fetched for Khalid
+  ibn al-Walid, of whom no likeness exists.
+- Turn pictures off under **Pins**, or start with `FIELDDESK_NO_FETCH=1` to never download.
+
+This was built on a machine that cannot reach Wikimedia, so the download has only been tested
+against a local stand-in (`node test/portraits.js`). Which articles resolve, and which pictures pass
+the licence rule, will only be known on the first real run.
+
 ## Weight
 
-Only the pinned commanders' files are read at startup; figures load when a file is opened. After a
-restart only the tab you are looking at loads; the others load when you select them. At most eight
-pages are kept live at once and the rest are put to sleep and reload when you return to them.
-Figure animation stops when the window is not in front. `node test/measure.js` prints launch time
-and memory by process.
+Only the pinned commanders' files are read at startup; figures and pictures load when a file is
+opened. After a restart only the tab you are looking at loads; the others load when you select
+them. At most four pages are kept loaded at once, and a page nobody has looked at for ten minutes
+is put to sleep: the tab stays in the strip and reloads when you return to it, so its scroll
+position and anything typed into a form on it are lost. Pages playing sound are left alone. Set
+`FIELDDESK_MAX_LIVE` or `FIELDDESK_SLEEP_AFTER_MIN` to change either limit. The figure moves for a
+few seconds when a file opens and when the pointer is over it, then rests. `npm run measure`
+prints launch time and memory by process.
 
 ## A note on the history
 
@@ -116,10 +143,12 @@ the app. Check anything you intend to rely on against the source.
 ## Checks
 
 ```sh
-npm test          # the restart check: two real pages, pin Caesar, clip, restart, verify
+npm test            # the restart check: two real pages, pin Caesar, clip, restart, verify
+npm run test:all    # every suite: restart, portraits, browsing, research features
+npm run measure     # launch time and memory
 ```
 
-On a headless Linux machine wrap it: `xvfb-run -a -s "-screen 0 1440x900x24" npm test`.
+On a headless Linux machine wrap them: `xvfb-run -a -s "-screen 0 1440x900x24" npm test`.
 The checks need Playwright (`npm i -D playwright`) in addition to the app's own dependencies.
 
 ## Layout of the code
@@ -127,6 +156,7 @@ The checks need Playwright (`npm i -D playwright`) in addition to the app's own 
 ```
 src/main.js        main process: window, isolated page views, menus, state file
 src/preload.js     the narrow bridge exposed to the app's own UI only
+src/portraits.js   the one-time portrait download and its licence rule
 app/               the UI (plain HTML, CSS and JavaScript; no build step)
   js/core.js       tabs, panes, split view, address bar, commands
   js/drawer.js     desk rail, commander files, compare, notes, workspaces, trail

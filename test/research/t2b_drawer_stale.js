@@ -17,7 +17,7 @@ T.run('drawer-stale', async (base) => {
     const fresh = await app.evaluate(() => global.__fieldDesk.lastContextMenu() !== global.__fdBefore);
     const n0 = await ui.evaluate(() => FD.S.state.commanders.caesar.clips.length);
     await T.menuClick(app, 'clip:caesar:tempo'); await sleep(500);
-    const r = await ui.evaluate(() => ({ st: FD.S.state.commanders.caesar.clips.length, dom: document.querySelectorAll('#drawer .col[data-col=caesar] .cat[data-cat=tempo] .clip').length, active: document.activeElement.tagName + '.' + document.activeElement.className, hasFocus: document.hasFocus() }));
+    const r = await ui.evaluate(() => ({ st: FD.S.state.commanders.caesar.clips.length, dom: document.querySelectorAll('#drawer .cat[data-col=caesar][data-cat=tempo] .clip').length, active: document.activeElement.tagName + '.' + document.activeElement.className, hasFocus: document.hasFocus() }));
     T.check(mode + ': new clip is rendered in the drawer', r.dom === r.st - 0 && r.st === n0 + 1 && r.dom === r.st, JSON.stringify(r));
     console.log(mode, { viewFocused: foc, freshMenu: fresh, first: items && items[0] && items[0].label, before: n0, ...r });
   }

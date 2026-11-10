@@ -488,15 +488,17 @@ textarea, input.text { border-radius: 3px; }
 .col-name { padding-bottom: 6px; min-width: 0; font-family: var(--display); font-size: 16px; font-variant-caps: small-caps; line-height: 1.15; }
 .col-name .muted { font-family: var(--caps); font-variant-caps: normal; font-size: 9.5px; letter-spacing: .08em; }
 
-/* Idle life. Small, slow, and stopped whenever the window is not in front. */
-.fig-breathe { transform-box: view-box; transform-origin: 120px 360px; animation: fig-breathe 5.2s ease-in-out infinite; }
-.fig-sway { transform-box: fill-box; transform-origin: 50% 0; animation: fig-sway 6.4s ease-in-out infinite; }
-.fig-plume { transform-box: fill-box; transform-origin: 50% 100%; animation: fig-plume 4.3s ease-in-out infinite; }
-.fig-eyes { transform-box: fill-box; transform-origin: 50% 50%; animation: fig-blink 6.7s linear infinite; }
+/* Idle life. Small and slow. It plays for a few breaths when the file opens and whenever the
+   pointer is over the figure, then rests, so an open drawer costs no processor time. */
+.fig-breathe { transform-box: view-box; transform-origin: 120px 360px; animation: fig-breathe 5.2s ease-in-out 3; }
+.fig-sway { transform-box: fill-box; transform-origin: 50% 0; animation: fig-sway 6.4s ease-in-out 2; }
+.fig-plume { transform-box: fill-box; transform-origin: 50% 100%; animation: fig-plume 4.3s ease-in-out 3; }
+.fig-eyes { transform-box: fill-box; transform-origin: 50% 50%; animation: fig-blink 6.7s linear 2; }
 @keyframes fig-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.004, 1.011); } }
 @keyframes fig-sway { 0%, 100% { transform: rotate(-.7deg); } 50% { transform: rotate(.9deg); } }
 @keyframes fig-plume { 0%, 100% { transform: rotate(-2.2deg); } 50% { transform: rotate(2.6deg); } }
 @keyframes fig-blink { 0%, 95.5%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(.12); } }
+.figure:hover * { animation-iteration-count: infinite; }
 body.blurred .figure *, .col-figure * { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .figure * { animation: none !important; } }
 
@@ -535,3 +537,9 @@ kbd { border-radius: 2px; }
 .tile-add .tile-mono { background: var(--paper-3); color: var(--ink-2); }
 .tile-title { font-family: var(--serif); font-size: 13px; }
 .nt-ws-row { border-radius: 2px; }
+
+/* A downloaded painting or photograph takes the figure's place, framed. */
+.figure.has-painting { align-self: flex-end; width: 150px; height: 206px; margin: 0 6px 12px 0; padding: 4px; background: var(--card); border: 1px solid var(--ink-3); box-shadow: 0 0 0 3px var(--brass), 0 0 0 4px var(--ink-3), 0 4px 10px rgba(40, 30, 10, .28); border-radius: 0; overflow: hidden; }
+.figure.has-painting img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; }
+.col-figure.has-painting { width: 78px; height: 104px; margin: 0 4px 8px 0; padding: 2px; box-shadow: 0 0 0 2px var(--brass), 0 0 0 3px var(--ink-3); }
+.file-credit { margin: -6px 0 10px; font-family: var(--sans); font-size: 10.5px; line-height: 1.4; color: var(--ink-3); }

@@ -45,7 +45,7 @@ window.FD = window.FD || {};
 
   // Standing figures: one small file each, read only when that commander's file is opened.
   const figures = new Map(); const figPending = new Set();
-  const fillFigures = (id) => document.querySelectorAll('[data-figure="' + id + '"]').forEach((el) => { el.innerHTML = figures.get(id); el.classList.add('has-figure'); });
+  const fillFigures = (id) => document.querySelectorAll('[data-figure="' + id + '"]').forEach((el) => { if (el.classList.contains('has-painting')) return; el.innerHTML = figures.get(id); el.classList.add('has-figure'); });
   FD.defineFigure = function (id, svg) { if (byId.has(id) && /^<svg[\s>]/.test(svg)) { figures.set(id, svg); fillFigures(id); } };
   FD.figure = function (id) {
     if (figures.has(id)) return figures.get(id);
@@ -58,13 +58,59 @@ window.FD = window.FD || {};
     }
     return '';
   };
-  // A slot for the figure; it shows the medallion until (or unless) the drawing arrives.
+  // A painting or photograph, if one has been downloaded for this commander (see src/portraits.js).
+  const paintings = new Map();   // id -> { dataUrl, credit } | null (none) ; absent = not asked yet
+  const usePaintings = () => !(FD.S && FD.S.state && FD.S.state.settings.portraits === false);
+  function showPainting(el, p) {
+    el.textContent = '';
+    const img = document.createElement('img');
+    img.src = p.dataUrl; img.alt = p.credit.title || ''; img.draggable = false;
+    el.appendChild(img);
+    el.classList.add('has-painting'); el.classList.remove('has-figure');
+  }
+  function creditText(c) {
+    return [c.title, c.artist, c.date && c.date.length < 40 ? c.date : '', c.licence].filter(Boolean).join(' · ');
+  }
+  function fillCredit(el, p) {
+    el.textContent = '';
+    if (!p) { el.hidden = true; return; }
+    const a = document.createElement('a');
+    a.href = '#'; a.className = 'clip-src'; a.title = p.credit.source; a.textContent = creditText(p.credit);
+    a.onclick = (e) => { e.preventDefault(); FD.openSource(p.credit.source); };
+    el.append(a, document.createTextNode(' · Wikimedia Commons' + (p.credit.note ? '. ' + p.credit.note : '')));
+    el.hidden = false;
+  }
+  function applyPainting(id) {
+    const p = paintings.get(id);
+    if (!p || !usePaintings()) return;
+    document.querySelectorAll('[data-figure="' + id + '"]').forEach((el) => showPainting(el, p));
+    document.querySelectorAll('[data-credit="' + id + '"]').forEach((el) => fillCredit(el, p));
+  }
+  FD.askPainting = function (id, again) {
+    if (!usePaintings() || (paintings.has(id) && !again)) return;
+    paintings.set(id, paintings.get(id) || null);
+    window.fd.invoke('portrait:get', id).then((p) => { if (p && p.dataUrl) { paintings.set(id, p); applyPainting(id); } }).catch(() => {});
+  };
+  FD.creditEl = function (id) {
+    const el = document.createElement('p');
+    el.className = 'file-credit'; el.dataset.credit = id; el.hidden = true;
+    const p = usePaintings() && paintings.get(id);
+    if (p) fillCredit(el, p);
+    return el;
+  };
+
+  // A slot for the commander's picture: the painting if there is one, otherwise the drawn
+  // figure, otherwise the medallion until the drawing arrives.
   FD.figureEl = function (id, cls) {
-    const svg = FD.figure(id);
     const el = document.createElement('div');
-    el.className = 'figure ' + (cls || '') + (svg ? ' has-figure' : '');
+    el.className = 'figure ' + (cls || '');
     el.dataset.figure = id;
+    const p = usePaintings() && paintings.get(id);
+    if (p) { showPainting(el, p); return el; }
+    const svg = FD.figure(id);
+    if (svg) el.classList.add('has-figure');
     el.innerHTML = svg || FD.portrait(id);
+    FD.askPainting(id);
     return el;
   };
 

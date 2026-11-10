@@ -76,7 +76,8 @@
     if (openerIndex >= 0) {
       // After the opener and after any tabs it has already opened, as other browsers do.
       let at = openerIndex + 1;
-      while (w.tabs[at] && S.openerOf[w.tabs[at].id] === opts.openerId) at++;
+      // Background tabs queue up after the ones already opened from this page; a tab you are taken to opens right beside it.
+      if (opts.background) while (w.tabs[at] && S.openerOf[w.tabs[at].id] === opts.openerId) at++;
       w.tabs.splice(at, 0, t); S.openerOf[t.id] = opts.openerId;
     } else if (opts.index != null) w.tabs.splice(Math.min(opts.index, w.tabs.length), 0, t);
     else w.tabs.push(t);
@@ -105,6 +106,9 @@
     if (closedUrl !== NEWTAB) {
       S.state.closed.push({ url: closedUrl, title: t.url === closedUrl ? t.title : (t.webMeta && t.webMeta.title) || '', ws: w.id, index: i });
       if (S.state.closed.length > 30) S.state.closed.shift();
+    } else {
+      // A new tab page is not worth reopening; keep the remembered positions of the others true.
+      S.state.closed.forEach((c) => { if (c.ws === w.id && c.index > i) c.index--; });
     }
     if (FD.rt(id).made) window.fd.invoke('tab:destroy', { id });
     delete S.rt[id]; S.pageCache.delete(id); delete w.trail.cur[id];
@@ -729,6 +733,7 @@
     new ResizeObserver(scheduleLayout).observe($('panes'));
     new ResizeObserver(scheduleLayout).observe($('pane-left'));
     window.addEventListener('resize', scheduleLayout);
+    window.addEventListener('resize', FD.debounce(() => { const a = document.querySelector('#tabs .tab.active'); if (a) a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }, 120));
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !e.defaultPrevented && !$('findbar').hidden && document.activeElement !== $('address')) FD.closeFind();
     });
@@ -784,6 +789,7 @@
       if (!cur || u.id !== cur.id) return;
       el.textContent = u.url || ''; el.classList.toggle('show', !!u.url);
     });
+    on('portrait:ready', (u) => FD.askPainting(u.id, true));
     on('tab:slept', (u) => { const r = S.rt[u.id]; if (r) { r.made = false; r.loading = false; r.canBack = false; r.canFwd = false; } });
     on('clip', (c) => FD.addClip(c));
     on('line', (l) => FD.addLine(l));

@@ -9,11 +9,17 @@
  *    therefore have no route to the app's IPC or to the notes/state file.
  *  - All browsing data and notes stay on this machine, under the app's userData folder.
  */
-const { app, BrowserWindow, WebContentsView, ipcMain, Menu, dialog, session, clipboard, shell } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, Menu, dialog, session, clipboard, shell, net } = require('electron');
+let portraits = null;
 const path = require('path');
 const fs = require('fs');
 
 app.setName('Field Desk');
+// Lighter Chromium: no idle spare page process, no background fetches, a bounded disk cache.
+app.commandLine.appendSwitch('disable-features', 'SpareRendererForSitePerProcess,MediaRouter,Translate,OptimizationHints,AutofillServerCommunication,InterestFeedContentSuggestions');
+app.commandLine.appendSwitch('disable-background-networking');
+app.commandLine.appendSwitch('disable-component-update');
+app.commandLine.appendSwitch('disk-cache-size', String(120 * 1024 * 1024));
 if (process.env.FIELDDESK_USER_DATA) app.setPath('userData', path.resolve(process.env.FIELDDESK_USER_DATA));
 
 const isMac = process.platform === 'darwin';
@@ -174,23 +180,28 @@ function destroyTab(id) {
   try { t.view.webContents.close(); } catch (_) {}
 }
 
-// Keep memory in hand: beyond MAX_LIVE loaded pages, the ones not looked at for longest are put
-// to sleep (their view is released; the tab stays and reloads when selected). Tabs playing
-// sound or with developer tools open are left alone.
-const MAX_LIVE = 8;
+// Keep memory in hand. A loaded page costs 60 to 200 MB, so only a few stay loaded:
+//  - at most MAX_LIVE pages at once; beyond that the one not looked at for longest goes to sleep;
+//  - a page nobody has looked at for SLEEP_AFTER_MS goes to sleep whatever the count.
+// Asleep means its view and process are released; the tab stays in the strip and reloads when
+// selected. Pages on screen, playing sound, or with developer tools open are left alone.
+const MAX_LIVE = Math.max(2, parseInt(process.env.FIELDDESK_MAX_LIVE, 10) || 4);
+const SLEEP_AFTER_MS = (parseFloat(process.env.FIELDDESK_SLEEP_AFTER_MIN) || 10) * 60000;
 function sleepIdleTabs() {
-  if (tabs.size <= MAX_LIVE) return;
+  if (tabs.size <= 1) return;
   const shown = new Set(layout.panes.map((p) => p.id));
+  const now = Date.now();
   const idle = [...tabs.values()].filter((t) => {
     const wc = t.view.webContents;
     return !shown.has(t.id) && !wc.isCurrentlyAudible() && !wc.isDevToolsOpened();
   }).sort((a, b) => (a.lastShown || 0) - (b.lastShown || 0));
-  while (tabs.size > MAX_LIVE && idle.length) {
+  while (idle.length && (tabs.size > MAX_LIVE || now - (idle[0].lastShown || 0) > SLEEP_AFTER_MS)) {
     const t = idle.shift();
     destroyTab(t.id);
     send('tab:slept', { id: t.id });
   }
 }
+setInterval(sleepIdleTabs, 60000).unref();
 
 function applyLayout() {
   const shown = new Map(layout.panes.map((p) => [p.id, p]));
@@ -358,6 +369,7 @@ function registerIpc() {
   handle('state:load', () => readJson(stateFile()));
   handle('state:save', (state) => { queueState(state); return true; });
   ipcMain.on('state:save-sync', (e, state) => { if (fromUi(e)) { pendingState = state; flushState(); } e.returnValue = true; });
+  handle('portrait:get', (id) => (portraits && typeof id === 'string' ? portraits.get(id) : null));
   handle('app:info', () => ({ platform: process.platform, version: app.getVersion(), userData: app.getPath('userData') }));
 
   handle('tab:create', ({ id, url }) => { createTab(String(id), url); return true; });
@@ -506,7 +518,9 @@ if (!app.requestSingleInstanceLock()) {
     app.setAboutPanelOptions({ applicationName: 'Field Desk', applicationVersion: app.getVersion() });
     registerIpc();
     buildAppMenu();
+    portraits = require('./portraits')({ app, net, onReady: (id) => send('portrait:ready', { id }) });
     createWindow();
+    setTimeout(() => portraits.fetchMissing().catch((e) => console.error('portraits', e.message)), 4000);
     app.on('activate', () => { if (!win) createWindow(); });
   });
   app.on('before-quit', flushState);
@@ -517,5 +531,6 @@ if (!app.requestSingleInstanceLock()) {
 global.__fieldDesk = {
   tabs, buildPageMenu,
   lastContextMenu: () => lastContextMenu,
-  stateFile
+  stateFile,
+  portraits: () => portraits
 };

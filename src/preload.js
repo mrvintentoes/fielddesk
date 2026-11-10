@@ -6,11 +6,11 @@ const { contextBridge, ipcRenderer } = require('electron');
 const INVOKE = new Set([
   'state:load', 'state:save', 'tab:create', 'tab:navigate', 'tab:destroy', 'tab:action',
   'layout:set', 'view:freeze', 'view:unfreeze', 'menu:tab', 'menu:page', 'pins:set',
-  'export:markdown', 'tab:find', 'tab:selection', 'ui:focus', 'app:info'
+  'export:markdown', 'tab:find', 'tab:selection', 'ui:focus', 'app:info', 'portrait:get'
 ]);
 const EVENTS = new Set([
   'tab:update', 'tab:open', 'tab:navigated', 'tab:fail', 'tab:focused', 'tab:found',
-  'tab:fullscreen', 'tab:target', 'tab:slept', 'clip', 'line', 'cmd'
+  'tab:fullscreen', 'tab:target', 'tab:slept', 'clip', 'line', 'cmd', 'portrait:ready'
 ]);
 
 contextBridge.exposeInMainWorld('fd', {

@@ -13,7 +13,7 @@ async function launch(profile) {
   if (process.platform === 'linux' && process.getuid && process.getuid() === 0) args.unshift('--no-sandbox');
   const app = await _electron.launch({
     executablePath: require('electron'), args,
-    env: Object.assign({}, process.env, { FIELDDESK_USER_DATA: profile })
+    env: Object.assign({}, process.env, { FIELDDESK_NO_FETCH: '1', FIELDDESK_USER_DATA: profile }, process.env.FD_TEST_ENV ? JSON.parse(process.env.FD_TEST_ENV) : {})
   });
   const ui = await app.firstWindow();
   await ui.waitForSelector('html.ready', { timeout: 20000 });

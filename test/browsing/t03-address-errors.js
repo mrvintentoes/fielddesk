@@ -221,6 +221,8 @@ const { check, sleep } = H;
     await H.accel(app, 'CmdOrCtrl+2'); await sleep(500);
     console.log('    find bar after tab switch: visible', await ui.isVisible('#findbar'), 'count', JSON.stringify(await ui.textContent('#find-count')), 'input', await ui.inputValue('#find-input'));
     await H.accel(app, 'CmdOrCtrl+1'); await sleep(400);
+    // the find bar belongs to the tab it was opened on, so it is closed after a tab switch; open it again
+    if (!(await ui.isVisible('#findbar'))) { await H.accel(app, 'CmdOrCtrl+F'); await sleep(400); }
     await ui.click('#find-input'); await ui.keyboard.press('Escape'); await sleep(400);
     check('Escape closes find bar', !(await ui.isVisible('#findbar')));
     al = await H.aligned(app, ui); check('find closed: view back to full slot', al.ok, al.problems.join('; '));

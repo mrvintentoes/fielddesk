@@ -29,7 +29,7 @@ T.run('clip', async (base) => {
   let cc = await clips('caesar');
   check('clip saved to Caesar with text, url, title', cc.length === 1 && cc[0].text === m.text.trim() && cc[0].url === base + '/A' && cc[0].title === 'Fixture A', JSON.stringify(cc[0]));
   check('toast confirms clip', /Clipped to Caesar/.test(await ui.$eval('#toast', (e) => e.textContent)));
-  check('clip appears in Caesar column under Unsorted', await ui.evaluate(() => !!document.querySelector('#drawer .col[data-col=caesar] .cat[data-cat=unsorted] .clip')));
+  check('clip appears in Caesar column under Unsorted', await ui.evaluate(() => !!document.querySelector('#drawer .cat[data-col=caesar][data-cat=unsorted] .clip')));
   check('pin count badge shows 1', (await ui.$eval('#rail .pin[data-commander=caesar] .pin-count', (e) => e.textContent).catch(() => '')) === '1');
 
   // ---- clip under a category; quotes
@@ -37,13 +37,13 @@ T.run('clip', async (base) => {
   await T.menuClick(app, 'clip:caesar:logistics'); await sleep(400);
   cc = await clips('caesar');
   check('clip under logistics, quotes and & kept', cc[0].category === 'logistics' && cc[0].text === 'He said "veni, vidi, vici" & meant it; the legions\' supply wagons followed.', JSON.stringify(cc[0].text));
-  check('shown under Logistics in Caesar column', await ui.evaluate(() => document.querySelectorAll('#drawer .col[data-col=caesar] .cat[data-cat=logistics] .clip').length === 1));
+  check('shown under Logistics in Caesar column', await ui.evaluate(() => document.querySelectorAll('#drawer .cat[data-col=caesar][data-cat=logistics] .clip').length === 1));
 
   // ---- markup-like text
   m = await selectAndMenu('/A', '#p3');
   await T.menuClick(app, 'clip:alexander:intelligence'); await sleep(400);
   let ca = await clips('alexander');
-  const inj = await ui.evaluate(() => ({ img: document.querySelectorAll('#drawer .clip img, #drawer .clip script').length, pwn: window.__pwn, txt: document.querySelector('#drawer .col[data-col=alexander] .cat[data-cat=intelligence] .clip-text').textContent }));
+  const inj = await ui.evaluate(() => ({ img: document.querySelectorAll('#drawer .clip img, #drawer .clip script').length, pwn: window.__pwn, txt: document.querySelector('#drawer .cat[data-col=alexander][data-cat=intelligence] .clip-text').textContent }));
   check('markup-like text stays text (no injected elements)', inj.img === 0 && inj.pwn === undefined && inj.txt.includes('<img src=x onerror=alert(1)>'), JSON.stringify(inj));
   check('markup text stored verbatim', ca[0].text === m.text.trim(), JSON.stringify(ca[0].text));
 
@@ -62,7 +62,7 @@ T.run('clip', async (base) => {
   console.log('  long selection', m.text.length, 'chars -> stored', ca[0].text.length, '; toast:', toast);
   check('very long selection is stored (maybe truncated)', ca[0].text.length >= 6000 && m.text.startsWith(ca[0].text.slice(0, 5000)));
   check('truncation of a long clip is signalled to the user', ca[0].text.length === m.text.trim().length || /…$|\.\.\.$/.test(ca[0].text) || /trunc|shorten|first/i.test(toast), 'selected ' + m.text.length + ', kept ' + ca[0].text.length + ', toast "' + toast + '"');
-  const longBox = await ui.$eval('#drawer .col[data-col=alexander] .cat[data-cat=tempo] .clip-text', (e) => ({ h: e.getBoundingClientRect().height, sh: e.scrollHeight }));
+  const longBox = await ui.$eval('#drawer .cat[data-col=alexander][data-cat=tempo] .clip-text', (e) => ({ h: e.getBoundingClientRect().height, sh: e.scrollHeight }));
   console.log('  long clip card height', JSON.stringify(longBox));
   T.rootShot('20-compare-with-clips');
   await ui.$eval('#drawer', (e) => { e.scrollTop = 420; }); await sleep(150); T.rootShot('20-compare-with-clips-scrolled');
@@ -71,14 +71,14 @@ T.run('clip', async (base) => {
   // ---- stance + tally
   const tally = () => ui.$eval('.tally', (e) => e.textContent);
   check('tally starts 0/0', (await tally()) === '0 supporting · 0 challenging', await tally());
-  const firstClip = '#drawer .col[data-col=caesar] .cat[data-cat=logistics] .clip';
+  const firstClip = '#drawer .cat[data-col=caesar][data-cat=logistics] .clip';
   await ui.click(firstClip + ' .stance.support'); await sleep(150);
   check('mark supporting -> tally 1/0', (await tally()) === '1 supporting · 0 challenging', await tally());
   check('stance stored', (await clips('caesar')).find((k) => k.category === 'logistics').stance === 'support');
   await ui.click(firstClip + ' .stance.challenge'); await sleep(150);
   check('switch to challenging -> tally 0/1', (await tally()) === '0 supporting · 1 challenging', await tally());
-  await ui.click('#drawer .col[data-col=alexander] .cat[data-cat=intelligence] .clip .stance.support'); await sleep(150);
-  await ui.click('#drawer .col[data-col=alexander] .cat[data-cat=logistics] .decision .stance.support'); await sleep(150);
+  await ui.click('#drawer .cat[data-col=alexander][data-cat=intelligence] .clip .stance.support'); await sleep(150);
+  await ui.click('#drawer .cat[data-col=alexander][data-cat=logistics] .decision .stance.support'); await sleep(150);
   check('clip + decision card supporting -> tally 2/1', (await tally()) === '2 supporting · 1 challenging', await tally());
   await ui.click(firstClip + ' .stance.challenge'); await sleep(150);
   check('click active stance clears it -> 2/0', (await tally()) === '2 supporting · 0 challenging', await tally());
@@ -86,38 +86,38 @@ T.run('clip', async (base) => {
   check('stance click did not open the source / change tab', await ui.evaluate((b) => FD.current().url === b + '/A', base));
 
   // ---- change category
-  await ui.selectOption('#drawer .col[data-col=caesar] .cat[data-cat=unsorted] .clip .cat-select', 'recovery'); await sleep(200);
-  check('category change moves the clip to Recovery', await ui.evaluate(() => document.querySelectorAll('#drawer .col[data-col=caesar] .cat[data-cat=recovery] .clip').length === 1 && !document.querySelector('#drawer .col[data-col=caesar] .cat[data-cat=unsorted]')));
-  check('category select shows current category', await ui.$eval('#drawer .col[data-col=caesar] .cat[data-cat=recovery] .clip .cat-select', (e) => e.value === 'recovery'));
+  await ui.selectOption('#drawer .cat[data-col=caesar][data-cat=unsorted] .clip .cat-select', 'recovery'); await sleep(200);
+  check('category change moves the clip to Recovery', await ui.evaluate(() => document.querySelectorAll('#drawer .cat[data-col=caesar][data-cat=recovery] .clip').length === 1 && !document.querySelector('#drawer .cat[data-col=caesar][data-cat=unsorted] .clip')));
+  check('category select shows current category', await ui.$eval('#drawer .cat[data-col=caesar][data-cat=recovery] .clip .cat-select', (e) => e.value === 'recovery'));
   check('stance kept across category change', (await tally()) === '2 supporting · 1 challenging', await tally());
 
   // ---- click a clip opens/focuses the source
   await ui.click('#tabs .tab:nth-child(2)'); await sleep(400);
   const before = await ui.evaluate(() => ({ n: FD.ws().tabs.length, cur: FD.current().url }));
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=recovery] .clip .clip-text'); await sleep(500);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=recovery] .clip .clip-text'); await sleep(500);
   let after = await ui.evaluate(() => ({ n: FD.ws().tabs.length, cur: FD.current().url }));
   check('click clip focuses the existing source tab (no duplicate)', after.cur === base + '/A' && after.n === before.n, JSON.stringify({ before, after }));
   const vis = (await T.views(app)).filter((v) => v.visible);
   check('source view visible after click', vis.length === 1 && vis[0].url === base + '/A', JSON.stringify(vis));
   // close the source tab, click the clip's source link -> reopened
   await ui.evaluate(() => FD.closeTab(FD.current().id)); await sleep(300);
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=recovery] .clip .clip-src'); await sleep(1500);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=recovery] .clip .clip-src'); await sleep(1500);
   after = await ui.evaluate(() => ({ n: FD.ws().tabs.length, cur: FD.current().url }));
   check('click clip source link reopens a closed source', after.cur.startsWith(base + '/A'), JSON.stringify(after));
   const vp = await T.viewPage(app, '/A');
   console.log('  reopened source url:', after.cur, ' view url:', vp.url(), ' scrollY', await vp.evaluate(() => scrollY));
-  await ui.click('#drawer .col[data-col=caesar] .cat[data-cat=recovery] .clip .clip-text'); await sleep(500);
+  await ui.click('#drawer .cat[data-col=caesar][data-cat=recovery] .clip .clip-text'); await sleep(500);
   const again = await ui.evaluate(() => FD.ws().tabs.length);
   check('clicking the clip again does not open a second copy', again === after.n, again + ' vs ' + after.n);
   // long clip (text fragment path): go to another tab and click it
   await ui.click('#tabs .tab:nth-child(1)'); await sleep(300);
-  await ui.click('#drawer .col[data-col=alexander] .cat[data-cat=tempo] .clip .clip-text'); await sleep(500);
+  await ui.click('#drawer .cat[data-col=alexander][data-cat=tempo] .clip .clip-text'); await sleep(500);
   check('click long clip focuses source', await ui.evaluate((b) => FD.current().url.startsWith(b + '/A'), base));
 
   // ---- delete
   const nA = (await clips('alexander')).length;
-  await ui.click('#drawer .col[data-col=alexander] .cat[data-cat=tempo] .clip .x'); await sleep(200);
-  check('delete removes the clip', (await clips('alexander')).length === nA - 1 && await ui.evaluate(() => !document.querySelector('#drawer .col[data-col=alexander] .cat[data-cat=tempo] .clip')));
+  await ui.click('#drawer .cat[data-col=alexander][data-cat=tempo] .clip .x'); await sleep(200);
+  check('delete removes the clip', (await clips('alexander')).length === nA - 1 && await ui.evaluate(() => !document.querySelector('#drawer .cat[data-col=alexander][data-cat=tempo] .clip')));
   check('pin badge updated after delete', (await ui.$eval('#rail .pin[data-commander=alexander] .pin-count', (e) => e.textContent)) === String(nA - 1));
 
   // ---- typing in the working question while page-title updates arrive
@@ -185,12 +185,12 @@ T.run('clip', async (base) => {
   await ui.mouse.click(bb.x + 30, bb.y + 10, { button: 'right' }); await sleep(500);
   const bi = await T.menuItems(app);
   const fresh = await app.evaluate(() => global.__fieldDesk.lastContextMenu() !== global.__fdBefore);
-  check('built-in page: right-click on selection opens clip menu', fresh && (bi || []).some((i) => i.id === 'clip:napoleon'), JSON.stringify((bi || []).map((i) => i.label).slice(0, 6)));
-  await T.menuClick(app, 'clip:napoleon:intelligence'); await sleep(400);
-  const nc = await clips('napoleon');
-  check('built-in page clip saved with fielddesk url', nc.length === 1 && nc[0].url === 'fielddesk://ulm' && nc[0].text === sel.trim(), JSON.stringify(nc[0]));
-  await ui.click('#rail .pin[data-commander=napoleon]'); await sleep(300);
-  T.rootShot('22-fog-napoleon-file-with-clip');
+  check('built-in page: right-click on selection opens clip menu', fresh && (bi || []).some((i) => i.id === 'clip:turenne'), JSON.stringify((bi || []).map((i) => i.label).slice(0, 6)));
+  await T.menuClick(app, 'clip:turenne:intelligence'); await sleep(400);
+  const nc = await clips('turenne');
+  check('built-in page clip saved with fielddesk url', nc.some((k) => k.url === 'fielddesk://ulm' && k.text === sel.trim()), JSON.stringify(nc[0]));
+  await ui.click('#rail .pin[data-commander=turenne]'); await sleep(300);
+  T.rootShot('22-fog-turenne-file-with-clip');
   await ui.click('#tabs .tab:nth-child(2)'); await sleep(200);
   await ui.click('#drawer .clip .clip-text'); await sleep(300);
   check('built-in clip click focuses the Ulm tab', await ui.evaluate(() => FD.current().url === 'fielddesk://ulm'));
@@ -199,7 +199,7 @@ T.run('clip', async (base) => {
   await sleep(400); await app.close();
   ({ app, ui } = await T.launch(prof)); await sleep(500);
   const st = await T.state(ui);
-  check('restart: clips persist', st.commanders.caesar.clips.length === 2 && st.commanders.napoleon.clips.length === 1 && st.commanders.turenne.clips.length === 2, JSON.stringify(Object.fromEntries(Object.entries(st.commanders).map(([k, v]) => [k, v.clips.length]))));
+  check('restart: clips persist', st.commanders.caesar.clips.length === 2 && st.commanders.turenne.clips.length === 3, JSON.stringify(Object.fromEntries(Object.entries(st.commanders).map(([k, v]) => [k, v.clips.length]))));
   check('restart: stance and category persist', st.commanders.caesar.clips.some((k) => k.category === 'logistics' && k.stance === 'challenge') && st.commanders.caesar.clips.some((k) => k.category === 'recovery'));
   check('restart: question persisted', st.workspaces.avc.question === typed, st.workspaces.avc.question);
   await app.close();

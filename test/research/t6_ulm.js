@@ -44,10 +44,10 @@ T.run('ulm', async (base) => {
   const hr = hits(s1.right); check('stage 1 SOURCES pane as first shown reveals nothing Mack could not know', hr.length === 0, '\n      ' + hr.join('\n      '));
   const hm = hits(s1.map); check('stage 1 map shows nothing from later stages', hm.length === 0, hm.join('; '));
   // the commander pinned in this workspace by default
-  await ui.click('#rail .pin[data-commander=napoleon]'); await sleep(250);
+  await ui.evaluate(() => { FD.pin('napoleon'); const d = FD.ws().drawer; d.open = true; d.panel = 'commander'; d.commander = 'napoleon'; FD.renderDrawer(true); }); await sleep(900);
   const dtext = await ui.$eval('#drawer', (e) => e.textContent);
   const hd = hits(dtext); check('stage 1: the pinned Napoleon drawer does not give the ending away', hd.length === 0, '\n      ' + hd.join('\n      '));
-  await ui.click('#rail .pin[data-commander=napoleon]'); await sleep(150);
+  await ui.evaluate(() => { FD.toggleDrawer(); FD.unpin('napoleon'); }); await sleep(150);
   const md0 = await ui.evaluate(() => FD.buildMarkdown());
   check('stage 1: export gives nothing away', hits(md0).length === 0, hits(md0).join('; '));
   const mapsByStage = await ui.evaluate(() => [1, 2, 3, 4].map((s) => { const d = document.createElement('div'); d.innerHTML = FD.ULM.map(s, null); return [...d.querySelectorAll('text')].map((t) => t.textContent).join(' | '); }));
