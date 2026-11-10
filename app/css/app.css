@@ -273,7 +273,7 @@ input.text { margin-bottom: 6px; }
 .step-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .map { margin: 0 0 6px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); overflow: hidden; }
 .map svg { display: block; width: 100%; height: auto; }
-.intel { list-style: none; margin: 10px 0; padding: 0; }
+.page ul.intel { list-style: none; margin: 10px 0; padding: 0; }
 .intel-item { margin: 0 0 10px; padding: 9px 12px; background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--green); border-radius: 4px; }
 .intel-item.assumption { border-left: 3px dashed #b9973e; }
 .intel-meta { margin-top: 4px; font-family: var(--sans); }

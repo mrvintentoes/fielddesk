@@ -33,7 +33,7 @@ FD.COMMANDERS = [
         category: 'tempo',
         title: 'The pursuit of Darius',
         when: '330 BC',
-        summary: 'Learning that Darius was a prisoner of his own nobles, Alexander left the slower part of the army behind and pressed on with picked cavalry and the fittest infantry, marching largely by night. Arrian records a final stage of about 400 stades covered in a single night. He reached the Persian column too late to take Darius alive, but the chase ended organised Achaemenid resistance.',
+        summary: 'Learning that Darius was a prisoner of his own nobles, Alexander left the slower part of the army behind and pressed on with picked cavalry and the fittest infantry, marching largely by night. Arrian records a final stage of about 400 stades covered in a single night. He reached the Persian column too late to take Darius alive, but the chase ended Darius\'s reign; what resistance remained passed to Bessus in the eastern satrapies.',
         cite: 'Arrian, Anabasis 3.20–21',
         url: 'https://en.wikipedia.org/wiki/Darius_III'
       },
@@ -42,7 +42,7 @@ FD.COMMANDERS = [
         category: 'logistics',
         title: 'Beating a navy from the land',
         when: '334–332 BC',
-        summary: 'At Miletus Alexander paid off most of his fleet, which he could neither afford nor trust to beat the Persian navy at sea. Instead he set out to capture the harbours along the coast that the Persian ships depended on for crews, water and repair. The long siege of Tyre followed from that logic: he would not march inland with an enemy naval base behind him.',
+        summary: 'At Miletus Alexander paid off most of his fleet, which he could neither afford nor trust to beat the Persian navy at sea. Instead he set out to capture the harbours along the coast that the Persian ships depended on for crews and landing places. The long siege of Tyre followed from that logic: in the speech Arrian gives him, he would not go on to Egypt, or inland after Darius, with an enemy naval base behind him.',
         cite: 'Arrian, Anabasis 1.20, 2.17',
         url: 'https://en.wikipedia.org/wiki/Siege_of_Tyre_(332_BC)'
       },
@@ -51,7 +51,7 @@ FD.COMMANDERS = [
         category: 'recovery',
         title: 'Turning back at the Hyphasis',
         when: '326 BC',
-        summary: 'On the river Hyphasis (Beas) the army, worn out after years of campaigning and the monsoon, declined to go further east; Arrian gives Coenus as its spokesman. After withdrawing to his tent for some days Alexander accepted the refusal, announced that the sacrifices were unfavourable, and ordered the return. He gave way rather than break the instrument he depended on.',
+        summary: 'On the river Hyphasis (Beas) the army, worn out after years of campaigning and the monsoon, declined to go further east; Arrian gives Coenus as its spokesman. After keeping to his tent until the third day Alexander accepted the refusal, announced that the sacrifices were unfavourable, and ordered the return. He gave way rather than break the instrument he depended on.',
         cite: 'Arrian, Anabasis 5.25–29',
         url: 'https://en.wikipedia.org/wiki/Indian_campaign_of_Alexander_the_Great'
       }
@@ -79,8 +79,8 @@ FD.COMMANDERS = [
         category: 'tempo',
         title: 'Through the Arno marshes',
         when: '217 BC',
-        summary: 'To enter Etruria Hannibal chose the short, flooded route through the Arno marshes, which the Romans were not watching, over the longer, obvious roads. The army waded for about four days and three nights with little chance to rest, losing many pack animals; Hannibal himself lost the sight of one eye to an infection. The price bought him a position beyond the Roman covering forces.',
-        cite: 'Polybius, Histories 3.78–79',
+        summary: 'To enter Etruria Hannibal chose the short, flooded route through the marshes (Polybius does not name them; Livy puts them on the Arno), where the Romans did not expect him, over the longer, obvious roads. The army waded for about four days and three nights with little chance to rest, losing many pack animals; Hannibal himself lost the sight of one eye to an infection. The price bought him a position beyond the Roman covering forces.',
+        cite: 'Polybius, Histories 3.78–79; Livy 22.2',
         url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html'
       },
       {
@@ -88,7 +88,7 @@ FD.COMMANDERS = [
         category: 'logistics',
         title: 'Seizing the depot at Cannae',
         when: '216 BC',
-        summary: 'With the new harvest not yet in, Hannibal moved from his winter quarters and captured the citadel of Cannae, where the Romans had been collecting grain and stores from the district around Canusium. The stroke fed his own army and unsettled the Roman one, whose commanders wrote to the Senate for instructions. It helped bring on the pitched battle he wanted.',
+        summary: 'Once the season allowed supplies to be drawn from the new crops, Hannibal left his winter quarters at Gerunium and captured the citadel of Cannae, where the Romans had been collecting grain and stores from the district around Canusium. The stroke fed his own army and unsettled the Roman one, whose commanders wrote to the Senate for instructions. It helped bring on the pitched battle he wanted.',
         cite: 'Polybius, Histories 3.107',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Cannae'
       },
@@ -116,8 +116,8 @@ FD.COMMANDERS = [
         category: 'intelligence',
         title: 'Volusenus scouts the British coast',
         when: '55 BC',
-        summary: 'Traders questioned about Britain could tell Caesar little about its harbours or peoples, so before embarking he sent the tribune Gaius Volusenus ahead in a warship to look for landing places. Volusenus returned within a few days having observed the shore without risking a landing. The report was thin, and the difficult opposed landing that followed shows the limits of reconnaissance done from the deck of a ship.',
-        cite: 'Caesar, Gallic War 4.21',
+        summary: 'Traders questioned about Britain could tell Caesar little about its harbours or peoples, so before embarking he sent the tribune Gaius Volusenus ahead in a warship to look for landing places. Volusenus returned on the fifth day having observed the shore without risking a landing. The report was thin, and the difficult opposed landing that followed shows the limits of reconnaissance done from the deck of a ship.',
+        cite: 'Caesar, Gallic War 4.20–21',
         url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/home.html'
       },
       {
@@ -126,7 +126,7 @@ FD.COMMANDERS = [
         title: 'Over the snowbound Cévennes',
         when: '52 BC',
         summary: 'When revolt broke out in winter with Caesar cut off from his legions, he had his men clear a path through the Cévennes, where by his account the snow lay very deep, and appeared without warning in Arvernian territory. The raid drew Vercingetorix back to defend his own people. Caesar used the respite to hurry by another route to his army.',
-        cite: 'Caesar, Gallic War 7.8',
+        cite: 'Caesar, Gallic War 7.8–9',
         url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/home.html'
       },
       {
@@ -135,7 +135,7 @@ FD.COMMANDERS = [
         title: 'Ilerda: winning by thirst',
         when: '49 BC',
         summary: 'In Spain, having outmarched the retreating Pompeian army of Afranius and Petreius, Caesar refused his soldiers\' demand for an immediate battle. He writes that he hoped to finish the business without bloodshed by cutting the enemy off from supply. Hemmed in away from water and forage, the Pompeians surrendered within days and their legions were disbanded.',
-        cite: 'Caesar, Civil War 1.72–84',
+        cite: 'Caesar, Civil War 1.72–87',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Ilerda'
       },
       {
@@ -143,7 +143,7 @@ FD.COMMANDERS = [
         category: 'recovery',
         title: 'From Dyrrhachium to Pharsalus',
         when: '48 BC',
-        summary: 'After Pompey broke his siege lines at Dyrrhachium with heavy loss, Caesar addressed the troops, gave up the blockade and slipped away by night marches before Pompey could exploit the success. He moved inland to Thessaly, where his men could be fed and rested and his detached forces rejoined him. About a month later he fought and won at Pharsalus.',
+        summary: 'After Pompey broke his siege lines at Dyrrhachium with heavy loss, Caesar addressed the troops, gave up the blockade and slipped away, starting by night, before Pompey could exploit the success. He moved inland to Thessaly, where his men could be fed and rested and his detached forces rejoined him. About a month later he fought and won at Pharsalus.',
         cite: 'Caesar, Civil War 3.73–75',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Dyrrhachium_(48_BC)'
       }
@@ -171,7 +171,7 @@ FD.COMMANDERS = [
         category: 'tempo',
         title: 'From the Channel to the Danube',
         when: 'Aug–Oct 1805',
-        summary: 'In late August 1805 Napoleon turned the army encamped around Boulogne away from England and sent it east. Roughly 200,000 men in separate corps, each on its own roads, reached the Rhine in about a month and the Danube early in October. The pace and the dispersal together put the army on the Austrian line of retreat before Russian help could arrive; Mack capitulated at Ulm on 20 October.',
+        summary: 'In late August 1805 Napoleon turned the army encamped around Boulogne away from England and sent it east. Roughly 200,000 men in separate corps, each on its own roads, reached the Rhine in about a month and the Danube early in October. The pace and the dispersal together put the army on the Austrian line of retreat before Russian help could arrive; Mack signed a capitulation at Ulm on 17 October and his troops marched out on the 20th.',
         cite: 'War of the Third Coalition, 1805',
         url: 'https://en.wikipedia.org/wiki/War_of_the_Third_Coalition'
       },
@@ -217,7 +217,7 @@ FD.COMMANDERS = [
         category: 'tempo',
         title: 'The dash to Sinsheim',
         when: 'June 1674',
-        summary: 'Learning that an Imperial force under Caprara and the Duke of Lorraine was moving to join a second army under Bournonville, Turenne crossed the Rhine at Philippsburg and covered the distance to it in a few days of hard marching. He caught and attacked it at Sinsheim on 16 June 1674 before the junction could be made. The battle was costly and not decisive, but it broke up the enemy\'s concentration for the moment.',
+        summary: 'Learning that an Imperial force under Caprara and the Duke of Lorraine was moving to join a second army under Bournonville, Turenne crossed the Rhine at Philippsburg and covered the distance to it in a few days of hard marching. He caught and attacked it at Sinsheim on 16 June 1674 before the junction could be made. He won, at a heavy cost, and soon recrossed the Rhine; the victory did not end the campaign, but it delayed the enemy\'s concentration.',
         cite: 'Battle of Sinsheim, 16 June 1674',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Sinsheim'
       },
@@ -235,7 +235,7 @@ FD.COMMANDERS = [
         category: 'recovery',
         title: 'Mergentheim to Allerheim',
         when: '1645',
-        summary: 'In May 1645 the Bavarian general Mercy surprised Turenne\'s army while it was dispersed in quarters near Mergentheim (Herbsthausen) and wrecked most of his infantry. Turenne brought off the remnant, fell back on his Hessian allies and was joined by a French army under the duc d\'Enghien, the future Condé. In August the combined force attacked Mercy at Allerheim, the second battle of Nördlingen; the victory was dearly bought, and Mercy was killed.',
+        summary: 'In early May 1645 the Bavarian general Mercy surprised Turenne\'s army while it was dispersed in quarters near Mergentheim (Herbsthausen) and wrecked most of his infantry. Turenne brought off the remnant, fell back on his Hessian allies and was joined by a French army under the duc d\'Enghien, the future Condé. On 3 August the combined force attacked Mercy at Allerheim, the second battle of Nördlingen; the victory was dearly bought, and Mercy was killed.',
         cite: 'Battles of Herbsthausen (Mergentheim) and Allerheim (Second Nördlingen), 1645',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Herbsthausen'
       }

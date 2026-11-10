@@ -31,8 +31,8 @@ FD.seedState = function () {
     id: 'avc', name: 'Alexander vs. Caesar',
     question: 'Where did Caesar have an operational edge?',
     tabs: [
-      { url: 'https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Caesar/Gallic_War/home.html', title: 'Caesar, Gallic War' },
-      { url: 'https://en.wikisource.org/wiki/The_Anabasis_of_Alexander', title: 'Arrian, Anabasis of Alexander' },
+      { url: 'https://en.wikipedia.org/wiki/Commentarii_de_Bello_Gallico', title: 'Caesar, Commentarii de Bello Gallico' },
+      { url: 'https://en.wikipedia.org/wiki/Anabasis_of_Alexander', title: 'Arrian, Anabasis of Alexander' },
       { url: 'https://en.wikipedia.org/wiki/Battle_of_Dyrrhachium_(48_BC)', title: 'Battle of Dyrrhachium' }
     ],
     pins: ['alexander', 'caesar'], panel: 'compare', drawerOpen: true

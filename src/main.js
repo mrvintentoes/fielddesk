@@ -230,7 +230,7 @@ function buildAppMenu() {
         item('Reopen Closed Tab', 'CmdOrCtrl+Shift+T', 'reopen-tab'),
         { type: 'separator' },
         item('Open Location', 'CmdOrCtrl+L', 'focus-address'),
-        item('Open Location (Alt+D)', 'Alt+D', 'focus-address'),
+        ...(isMac ? [] : [item('Open Location (Alt+D)', 'Alt+D', 'focus-address')]),
         item('Search the Web', 'CmdOrCtrl+K', 'focus-address'),
         { type: 'separator' },
         item('Export Notes as Markdown…', 'CmdOrCtrl+Shift+E', 'export'),
@@ -264,8 +264,7 @@ function buildAppMenu() {
       label: 'History',
       submenu: [
         item('Back', isMac ? 'Cmd+[' : 'Alt+Left', 'back'),
-        item('Forward', isMac ? 'Cmd+]' : 'Alt+Right', 'forward'),
-        ...(isMac ? [item('Back (Cmd+Left)', 'Cmd+Left', 'back'), item('Forward (Cmd+Right)', 'Cmd+Right', 'forward')] : [])
+        item('Forward', isMac ? 'Cmd+]' : 'Alt+Right', 'forward')
       ]
     },
     {

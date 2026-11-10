@@ -49,7 +49,7 @@ window.FD = window.FD || {};
           {
             text: "French troops are said to have marched straight through the Prussian territory of Ansbach in the first days of October. You had counted on neutral Prussian ground to cover your northern flank.",
             kind: 'sourced', refs: [1, 10, 11],
-            note: 'Bernadotte and Marmont crossed Ansbach about 3 October. When word reached Ulm is our guess.'
+            note: 'Bernadotte and Marmont crossed Ansbach territory in the days from about 3 October. That Mack relied on Prussian neutrality is the usual reading of the histories; when word reached Ulm is our guess.'
           },
           {
             text: "You have no reliable count of the French army in Germany, and no certainty which of these movements is the main effort and which is a screen.",
@@ -66,11 +66,13 @@ window.FD = window.FD || {};
         intel: [
           {
             text: "On 7 October French troops force crossings of the Danube at and around Donauw\u00f6rth, roughly 70 km downstream of Ulm. They are now on the south bank, behind your right.",
-            kind: 'sourced', refs: [1, 2, 10]
+            kind: 'sourced', refs: [1, 2, 10],
+            note: 'The crossings are sourced. How quickly and how fully they were reported at Ulm is our simplification.'
           },
           {
             text: "Kienmayer, too weak to hold the river line, is falling back away from you, east and south-east toward Munich.",
-            kind: 'sourced', refs: [1, 2]
+            kind: 'sourced', refs: [1, 2],
+            note: 'The withdrawal is sourced. What Mack knew of it on these days is our simplification.'
           },
           {
             text: "On 8 October Auffenberg's division, sent toward the threatened flank, is caught at Wertingen by French cavalry and infantry and loses roughly half its strength, most of it as prisoners.",
@@ -109,7 +111,7 @@ window.FD = window.FD || {};
             kind: 'assumption', refs: []
           },
           {
-            text: "The Russians are still at least a fortnight from any place where they could help you, and the Inn itself lies well over 200 km to your east.",
+            text: "The Russians are still at least a fortnight from any place where they could help you, and the Inn itself lies more than 200 km to your east.",
             kind: 'sourced', refs: [1, 11],
             note: 'Arrival dates vary between accounts; what Mack was told about Russian progress is our simplification.'
           },
@@ -154,7 +156,7 @@ window.FD = window.FD || {};
       timeline: [
         {
           date: '9 October',
-          text: "Ney's corps seizes the Danube bridges at G\u00fcnzburg just as Mack is preparing to pass the army to the north bank there. The Austrians fall back on Ulm.",
+          text: "Ney's corps attacks the Danube bridges at G\u00fcnzburg and wins a crossing there, just as Mack is preparing to pass the army to the north bank there. The Austrians fall back on Ulm.",
           refs: [3, 1], kind: 'sourced'
         },
         {
@@ -179,17 +181,17 @@ window.FD = window.FD || {};
         },
         {
           date: '14 October',
-          text: "Ney forces the bridge at Elchingen, beats Riesch and closes the north bank. The same day Soult takes Memmingen and its garrison, shutting the road south.",
+          text: "Ney forces the bridge at Elchingen, beats Riesch and closes the north bank. At about the same time (13 or 14 October; accounts differ) Soult takes Memmingen and its garrison, shutting the road south.",
           refs: [5, 1], kind: 'sourced'
         },
         {
           date: '14\u201318 October',
-          text: "Archduke Ferdinand rides out of Ulm to the north-east with most of the cavalry. Murat runs down Werneck's corps, which surrenders at Trochtelfingen about 18 October; Ferdinand reaches Bohemia with a remnant.",
+          text: "Archduke Ferdinand leaves Ulm for the north-east with a body of cavalry. Murat runs down Werneck's corps, which surrenders at Trochtelfingen about 18 October; Ferdinand reaches Bohemia with a remnant.",
           refs: [1, 6], kind: 'sourced'
         },
         {
           date: '15\u201317 October',
-          text: "The French take the heights overlooking Ulm and bring guns to bear on the town. On the 17th Mack signs a capitulation, at first to take effect only if no relief arrives within days.",
+          text: "The French take the heights overlooking Ulm and bring guns to bear on the town. On the 17th Mack signs a capitulation, at first to take effect on 25 October if no relief has arrived by then.",
           refs: [6, 1, 10], kind: 'sourced'
         },
         {
@@ -211,7 +213,7 @@ window.FD = window.FD || {};
         },
         south: {
           headline: 'An army saved, a campaign abandoned',
-          text: "The road by Memmingen stayed open until about 13 October, and Jella\u010di\u0107's corps did get away along it. The army would likely have survived for the moment, but shut up in the mountains, with the Danube road to Vienna uncovered and Kutuzov left to face the French alone. Jella\u010di\u0107's capitulation in November suggests the refuge was not a lasting one.",
+          text: "The road by Memmingen stayed open until about 13 or 14 October, and Jella\u010di\u0107's corps did get away along it. The army would likely have survived for the moment, but shut up in the mountains, with the Danube road to Vienna uncovered and Kutuzov left to face the French alone. Jella\u010di\u0107's capitulation in November suggests the refuge was not a lasting one.",
           kind: 'assumption', refs: [1, 11]
         },
         stand: {
@@ -220,7 +222,7 @@ window.FD = window.FD || {};
           kind: 'assumption', refs: [1, 6, 10]
         }
       },
-      historicalChoice: "Mack's conduct most resembled a hesitant 'north' that kept collapsing into 'stand': he began the north-bank move on the 9th and again on the 11th, abandoned it both times, and ended by waiting in Ulm. He also sent one corps south, so a fragment of 'south' was tried as well."
+      historicalChoice: "On our reading, which is a judgement and not a sourced fact, Mack's conduct most resembled a hesitant 'north' that kept collapsing into 'stand': he began the north-bank move on the 9th and again on the 11th, abandoned it both times, and ended by waiting in Ulm. He also sent one corps south, so a fragment of 'south' was tried as well."
     },
 
     assumptions: [
@@ -242,7 +244,7 @@ window.FD = window.FD || {};
         note: 'The French crossing at Donauw\u00f6rth, Kienmayer\u2019s withdrawal and the destruction of Auffenberg\u2019s division on 8 October.' },
       { n: 3, title: 'Battle of G\u00fcnzburg', author: 'Wikipedia', year: '', kind: 'web',
         url: 'https://en.wikipedia.org/wiki/Battle_of_G%C3%BCnzburg',
-        note: 'Ney\u2019s seizure of the G\u00fcnzburg bridges on 9 October and what Mack was attempting there.' },
+        note: 'Ney\u2019s fight for the G\u00fcnzburg bridges on 9 October and what Mack was attempting there.' },
       { n: 4, title: 'Battle of Haslach-Jungingen', author: 'Wikipedia', year: '', kind: 'web',
         url: 'https://en.wikipedia.org/wiki/Battle_of_Haslach-Jungingen',
         note: 'Dupont\u2019s isolated division on the north bank, 11 October, with the range of strength estimates.' },
@@ -255,9 +257,9 @@ window.FD = window.FD || {};
       { n: 7, title: 'Karl Mack von Leiberich', author: 'Wikipedia', year: '', kind: 'web',
         url: 'https://en.wikipedia.org/wiki/Karl_Mack_von_Leiberich',
         note: 'Mack\u2019s career, his position beside Archduke Ferdinand, and his court martial afterwards.' },
-      { n: 8, title: 'Karl Schulmeister', author: 'Wikipedia', year: '', kind: 'web',
-        url: 'https://en.wikipedia.org/wiki/Karl_Schulmeister',
-        note: 'The spy traditionally credited with deceiving Mack. Much of the story rests on later, colourful accounts; treat it with caution.' },
+      { n: 8, title: 'Charles Louis (Karl) Schulmeister', author: 'Wikipedia', year: '', kind: 'web',
+        url: 'https://en.wikipedia.org/wiki/Special:Search/Charles_Louis_Schulmeister',
+        note: 'The link is a Wikipedia title lookup, since the article is filed under the French form of his name. The spy traditionally credited with deceiving Mack. Much of the story rests on later, colourful accounts; treat it with caution.' },
       { n: 9, title: 'The Ulm Campaign, 1805', author: 'F. N. Maude', year: '1912', kind: 'web',
         url: 'https://archive.org/search?query=Maude+%22Ulm+Campaign%22+1805',
         note: 'Public-domain staff history with detailed marches and orders. Dated in its judgements, useful for the sequence of movements. The link is a search of the Internet Archive, not a specific scan.' },
