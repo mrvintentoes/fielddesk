@@ -1,0 +1,20 @@
+const T = require('./common');
+T.run('smoke', async (base) => {
+  const { app, ui } = await T.launch(T.profile('smoke', true));
+  await T.setWindow(app, 1440, 900);
+  await T.sleep(500);
+  console.log(await ui.evaluate(() => ({ ws: FD.ws().id, pins: FD.ws().pins, w: innerWidth, h: innerHeight })));
+  T.rootShot('00-first-run-1440');
+  await ui.evaluate((u) => { FD.openWorkspace('loose'); FD.navigate(FD.current(), u + '/A'); }, base);
+  await T.sleep(1500);
+  console.log(await T.views(app), await T.slots(ui));
+  const p = await T.viewPage(app, '/A');
+  console.log('view page title', await p.title());
+  await p.click('#p1', { clickCount: 3 });
+  const tab = (await T.views(app))[0];
+  const items = await T.rightClick(app, tab.id, 100, 110);
+  console.log(items);
+  await T.menuClose(app);
+  T.rootShot('00-loose-A');
+  await app.close();
+});
