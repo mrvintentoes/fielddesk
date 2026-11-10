@@ -19,5 +19,7 @@ const snap = (name) => execSync('import -window root -crop 1380x880+30+10 +repag
   await ui.evaluate(() => { FD.command('split'); FD.maybeRemark(FD.current().id, true); }); await sleep(900); snap('5-remark');
   await ui.evaluate(() => { FD.openWorkspace('avc'); }); await sleep(2500); snap('6-alexander-vs-caesar-compare');
   await ui.evaluate(() => { FD.openPanel('pin'); }); await sleep(1500); snap('7-pin-chooser');
+  await ui.evaluate(() => { FD.openWorkspace('loose'); FD.unpin('caesar'); FD.pin('napoleon'); FD.openPanel('commander', 'napoleon'); }); await sleep(2500); snap('8-napoleon-file');
+  await ui.evaluate(() => { FD.unpin('napoleon'); FD.pin('yi'); FD.openPanel('commander', 'yi'); FD.newTab(); }); await sleep(2500); snap('9-yi-new-tab');
   await app.close();
 })().catch((e) => { console.error(e); process.exit(1); });

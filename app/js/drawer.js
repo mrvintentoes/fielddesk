@@ -162,7 +162,15 @@
   };
 
   // ------------------------------------------------------------ the rail
-  const ICONS = { notes: '✎', workspaces: '▤', trail: '⑂', bookmarks: '★' };
+  const ico = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+  const ICONS = {
+    pin: ico('<path d="M12 3l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 8.3l5-.7z"/><path d="M12 17v4"/>'),              // a decoration: star and ribbon
+    notes: ico('<path d="M19 3c-6 1-10 5-12 12l-2 6 3-4c6 0 10-5 11-14z"/><path d="M7 15c3-4 6-7 10-9"/>'),                         // quill
+    workspaces: ico('<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>'),                                    // folded map
+    trail: ico('<path d="M5 20c0-6 4-6 7-9s2-6 2-8"/><path d="M12 11c3 0 6 1 7 5"/><circle cx="5" cy="20" r="1.3"/><circle cx="19" cy="17" r="1.3"/><path d="M12 5l2-2 2 2"/>'), // branching route
+    bookmarks: ico('<path d="M6 21V3"/><path d="M6 4h12l-3 4 3 4H6"/>'),                                                              // pennant
+    hide: ico('<path d="M9 6l6 6-6 6"/><path d="M4 4v16"/>')
+  };
   FD.renderRail = function () {
     const w = FD.ws(); const d = w.drawer;
     FD.applyTheme();
@@ -186,15 +194,13 @@
       clipsOf(id).length ? h('span', { class: 'pin-count' }, String(clipsOf(id).length)) : null));
     });
     rail.appendChild(h('button', { class: 'rail-btn' + (d.open && d.panel === 'pin' ? ' on' : ''), title: 'Pin a commander', onclick: () => FD.openPanel('pin') },
-      h('span', { class: 'rail-ico' }, '+'), h('span', { class: 'rail-label' }, w.pins.length ? 'Pins' : 'Pin')));
+      h('span', { class: 'rail-ico', html: ICONS.pin }), h('span', { class: 'rail-label' }, w.pins.length ? 'Pins' : 'Pin')));
     rail.appendChild(h('div', { class: 'rail-rule' }));
     [['notes', 'Notes'], ['workspaces', 'Desks'], ['trail', 'Trail'], ['bookmarks', 'Marks']].forEach(([p, label]) => {
       rail.appendChild(h('button', { class: 'rail-btn' + (d.open && d.panel === p ? ' on' : ''), title: label, 'data-panel': p, onclick: () => FD.openPanel(p) },
-        h('span', { class: 'rail-ico' }, ICONS[p]), h('span', { class: 'rail-label' }, label)));
+        h('span', { class: 'rail-ico', html: ICONS[p] }), h('span', { class: 'rail-label' }, label)));
     });
     rail.appendChild(h('div', { class: 'rail-spring' }));
-    rail.appendChild(h('button', { class: 'rail-btn', title: 'Collapse the rail and just browse', onclick: FD.toggleRail },
-      h('span', { class: 'rail-ico' }, '»'), h('span', { class: 'rail-label' }, 'Hide')));
   };
 
   // ------------------------------------------------------------ shared pieces
@@ -281,17 +287,22 @@
         h('h3', null, 'Saved passages', clips.length ? h('span', { class: 'count' }, String(clips.length)) : null),
         clips.length ? clips.map((k) => clipCard(c.id, k)) : h('p', { class: 'empty' }, 'Nothing in ' + c.name + '’s file yet. Select a passage on any page, right-click, and choose “Clip to ' + c.name + '’s file”.'));
     return [
-      h('header', { class: 'drawer-head file-head' },
-        h('span', { class: 'file-portrait', html: FD.portrait(c.id) }),
-        h('div', null, h('h2', null, c.name), h('p', { class: 'muted small' }, c.full + ' · ' + c.dates), h('p', { class: 'epithet' }, c.epithet), c.theme ? h('p', { class: 'muted small' }, c.theme.label + ' theme') : null),
+      h('header', { class: 'file-stage' },
+        h('div', { class: 'file-plate' },
+          h('p', { class: 'file-kicker' }, 'Commander’s file'),
+          h('h2', null, c.name),
+          h('p', { class: 'file-full' }, c.full),
+          h('p', { class: 'file-dates' }, c.dates),
+          h('p', { class: 'epithet' }, c.epithet),
+          c.theme ? h('p', { class: 'file-theme' }, h('span', { class: 'file-swatch' }), c.theme.label) : null),
+        FD.figureEl(c.id, 'file-figure'),
         h('button', { class: 'x big', title: 'Close the drawer', onclick: FD.toggleDrawer }, '×')),
       segmented(w),
       questionField(w),
       ...(clips.length ? [PASSAGES, DECISIONS] : [DECISIONS, PASSAGES]),
       QUOTES,
       h('p', { class: 'drawer-foot' },
-        w.pins.includes(c.id) ? h('button', { class: 'btn quiet', onclick: () => FD.unpin(c.id) }, 'Unpin ' + c.name) : h('button', { class: 'btn', onclick: () => FD.pin(c.id) }, 'Pin ' + c.name),
-        w.pins.length < 2 ? h('button', { class: 'btn quiet', onclick: () => FD.openPanel('pin') }, 'Pin a second commander to compare') : null)
+        w.pins.includes(c.id) ? h('button', { class: 'btn quiet', onclick: () => FD.unpin(c.id) }, 'Unpin ' + c.name) : h('button', { class: 'btn', onclick: () => FD.pin(c.id) }, 'Pin ' + c.name))
     ];
   }
 
@@ -305,8 +316,8 @@
       c.decisions.forEach((d) => { if (w.cardStance[d.id] === 'support') support++; if (w.cardStance[d.id] === 'challenge') challenge++; });
     });
     const colHead = (c) => h('div', { class: 'col-head', 'data-col': c.id },
-      h('span', { class: 'col-portrait', html: FD.portrait(c.id) }),
-      h('div', null, h('strong', null, c.name), h('div', { class: 'muted small' }, c.dates)));
+      FD.figureEl(c.id, 'col-figure'),
+      h('div', { class: 'col-name' }, h('strong', null, c.name), h('div', { class: 'muted small' }, c.dates)));
     const cell = (c, cat) => {
       const clips = clipsOf(c.id).filter((k) => (k.category || null) === cat.id);
       const card = cat.id ? c.decisions.find((d) => d.category === cat.id) : null;

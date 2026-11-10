@@ -177,7 +177,7 @@ function destroyTab(id) {
 // Keep memory in hand: beyond MAX_LIVE loaded pages, the ones not looked at for longest are put
 // to sleep (their view is released; the tab stays and reloads when selected). Tabs playing
 // sound or with developer tools open are left alone.
-const MAX_LIVE = 10;
+const MAX_LIVE = 8;
 function sleepIdleTabs() {
   if (tabs.size <= MAX_LIVE) return;
   const shown = new Set(layout.panes.map((p) => p.id));
@@ -375,7 +375,7 @@ function registerIpc() {
       case 'forward': if (canFwd(wc)) nav(wc).goForward(); break;
       case 'reload': wc.reload(); break;
       case 'hard-reload': wc.reloadIgnoringCache(); break;
-      case 'stop': wc.stop(); break;
+      case 'stop': wc.stop(); return { url: wc.getURL(), title: wc.getTitle() };
       case 'focus': wc.focus(); break;
       case 'zoom-in': wc.setZoomLevel(Math.min(wc.getZoomLevel() + 0.5, 4)); break;
       case 'zoom-out': wc.setZoomLevel(Math.max(wc.getZoomLevel() - 0.5, -3)); break;

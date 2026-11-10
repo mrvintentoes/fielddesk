@@ -11,6 +11,14 @@
   const S = FD.S;
   const $ = (id) => document.getElementById(id);
 
+  // The mark on the new tab page: a compass rose over crossed sabres. Field Desk's own drawing.
+  FD.CREST = '<svg viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path class="crest-brass" d="M17 79C36 60 56 38 76 14M79 79C60 60 40 38 20 14"/><path class="crest-brass" d="M13 73l10 10M83 73L73 83M10 86l6-6M86 86l-6-6"/>' +
+    '<circle cx="48" cy="46" r="27"/><circle cx="48" cy="46" r="22.5" stroke-width=".8"/>' +
+    '<path class="crest-fill" d="M48 12l5 29-5 5-5-5zM48 80l-5-29 5-5 5 5zM14 46l29-5 5 5-5 5zM82 46l-29 5-5-5 5-5z"/>' +
+    '<path d="M48 12l5 29-5 5-5-5zM48 80l-5-29 5-5 5 5zM14 46l29-5 5 5-5 5zM82 46l-29 5-5-5 5-5z" stroke-width="1"/>' +
+    '<path d="M32 30l11 11M64 30L53 41M32 62l11-11M64 62L53 51" stroke-width="1"/><circle cx="48" cy="46" r="2.4" fill="currentColor"/></svg>';
+
   // ------------------------------------------------------------ lead commander and theme
   FD.lead = function () {
     const w = FD.ws();

@@ -96,6 +96,48 @@ FD.COMMANDER_INDEX = [
   }
  },
  {
+  "id": "scipio",
+  "name": "Scipio",
+  "full": "Publius Cornelius Scipio Africanus",
+  "dates": "236–183 BC",
+  "epithet": "Long preparation, then one decisive stroke",
+  "era": "Ancient world",
+  "tone": "#7a4a12",
+  "selfWords": [
+   "Scipio",
+   "Africanus"
+  ],
+  "rivalWords": [
+   "Hannibal",
+   "Zama",
+   "Carthage",
+   "Hasdrubal",
+   "Syphax",
+   "Ilipa"
+  ],
+  "theme": {
+   "label": "Stern Republic",
+   "vars": {
+    "--paper": "#f1efe8",
+    "--paper-2": "#e6e3d8",
+    "--paper-3": "#d9d5c6",
+    "--card": "#faf9f4",
+    "--ink": "#24241d",
+    "--ink-2": "#525040",
+    "--ink-3": "#827e6b",
+    "--rule": "#cbc6b3",
+    "--accent": "#7a4a12",
+    "--accent-soft": "#ead9bd",
+    "--green": "#4a5924",
+    "--green-soft": "#dde2c8",
+    "--brass": "#9a7b3a",
+    "--amber-soft": "#eee0b2",
+    "--blue": "#2e4d68"
+   },
+   "band": "linear-gradient(90deg, #7a4a12 0 33%, #b3924a 33% 66%, #4a5924 66%)"
+  }
+ },
+ {
   "id": "caesar",
   "name": "Caesar",
   "full": "Gaius Julius Caesar",
@@ -140,6 +182,343 @@ FD.COMMANDER_INDEX = [
     "--blue": "#30506f"
    },
    "band": "linear-gradient(90deg, #96281e 0 12%, #b0892a 12% 14%, #96281e 14% 86%, #b0892a 86% 88%, #96281e 88%)"
+  }
+ },
+ {
+  "id": "belisarius",
+  "name": "Belisarius",
+  "full": "Flavius Belisarius",
+  "dates": "c. 500–565",
+  "epithet": "Small armies, long odds, steady nerve",
+  "era": "Medieval world",
+  "tone": "#5c2a6e",
+  "selfWords": [
+   "Belisarius"
+  ],
+  "rivalWords": [
+   "Gelimer",
+   "Vandals",
+   "Vandalic",
+   "Vitiges",
+   "Totila",
+   "Ostrogoths",
+   "Ad Decimum",
+   "Callinicum",
+   "Battle of Dara"
+  ],
+  "theme": {
+   "label": "Byzantine",
+   "vars": {
+    "--paper": "#f7f1dc",
+    "--paper-2": "#eee5c8",
+    "--paper-3": "#e3d7b1",
+    "--card": "#fdf9ea",
+    "--ink": "#271f2b",
+    "--ink-2": "#564a57",
+    "--ink-3": "#877a7c",
+    "--rule": "#d8ca9f",
+    "--accent": "#5c2a6e",
+    "--accent-soft": "#e7d7e6",
+    "--green": "#27605a",
+    "--green-soft": "#d3e4da",
+    "--brass": "#b08a1e",
+    "--amber-soft": "#f2e3ae",
+    "--blue": "#2c4c7c"
+   },
+   "band": "repeating-linear-gradient(90deg, #5c2a6e 0 9px, #b8922a 9px 12px)"
+  }
+ },
+ {
+  "id": "khalid",
+  "name": "Khalid",
+  "full": "Khalid ibn al-Walid",
+  "dates": "died 642",
+  "epithet": "Speed, the mobile reserve, the open flank",
+  "era": "Medieval world",
+  "tone": "#1e5a3a",
+  "selfWords": [
+   "Khalid ibn al-Walid",
+   "Khalid ibn Walid",
+   "Khalid bin Walid",
+   "Khalid b. al-Walid"
+  ],
+  "rivalWords": [
+   "Yarmuk",
+   "Yarmouk",
+   "Walaja",
+   "Mu'tah",
+   "Heraclius",
+   "Ridda wars"
+  ],
+  "theme": {
+   "label": "Rashidun Arabia",
+   "vars": {
+    "--paper": "#f8f5ec",
+    "--paper-2": "#ece6d3",
+    "--paper-3": "#e0d7bd",
+    "--card": "#fefdf8",
+    "--ink": "#1c1f1b",
+    "--ink-2": "#4a4e44",
+    "--ink-3": "#7d7f70",
+    "--rule": "#d4cbb0",
+    "--accent": "#1e5a3a",
+    "--accent-soft": "#d6e6d8",
+    "--green": "#255c6b",
+    "--green-soft": "#d4e3e4",
+    "--brass": "#a88a4a",
+    "--amber-soft": "#efe1b8",
+    "--blue": "#2b4a7a"
+   },
+   "band": "linear-gradient(90deg, #1c1f1b 0 33%, #1e5a3a 33% 66%, #c9b684 66%)"
+  }
+ },
+ {
+  "id": "saladin",
+  "name": "Saladin",
+  "full": "Salah al-Din Yusuf ibn Ayyub",
+  "dates": "c. 1137–1193",
+  "epithet": "Patience, water and a kept word",
+  "era": "Medieval world",
+  "tone": "#17595e",
+  "selfWords": [
+   "Saladin",
+   "Salah al-Din",
+   "Salah ad-Din"
+  ],
+  "rivalWords": [
+   "Hattin",
+   "Richard the Lionheart",
+   "Richard I",
+   "Guy of Lusignan",
+   "Raynald of Châtillon",
+   "Baldwin IV",
+   "Montgisard",
+   "Arsuf",
+   "Third Crusade"
+  ],
+  "theme": {
+   "label": "Ayyubid",
+   "vars": {
+    "--paper": "#f4eadc",
+    "--paper-2": "#ebdeca",
+    "--paper-3": "#e0d0b6",
+    "--card": "#fcf5ea",
+    "--ink": "#262019",
+    "--ink-2": "#574b3c",
+    "--ink-3": "#8b7b66",
+    "--rule": "#d6c4a6",
+    "--accent": "#17595e",
+    "--accent-soft": "#d2e3e1",
+    "--green": "#3f6a2c",
+    "--green-soft": "#dbe5cb",
+    "--brass": "#c2901a",
+    "--amber-soft": "#f3dfa8",
+    "--blue": "#2c4a86"
+   },
+   "band": "linear-gradient(90deg, #d9a521 0 70%, #17595e 70%)"
+  }
+ },
+ {
+  "id": "genghis",
+  "name": "Genghis",
+  "full": "Genghis Khan (Temüjin)",
+  "dates": "c. 1162–1227",
+  "epithet": "Columns far apart, arriving together",
+  "era": "Medieval world",
+  "tone": "#1f6391",
+  "selfWords": [
+   "Genghis",
+   "Chinggis",
+   "Temüjin",
+   "Temujin"
+  ],
+  "rivalWords": [
+   "Khwarazm",
+   "Khwarezm",
+   "Jamukha",
+   "Toghrul",
+   "Ong Khan",
+   "Western Xia",
+   "Otrar"
+  ],
+  "theme": {
+   "label": "Mongol Steppe",
+   "vars": {
+    "--paper": "#eef0e7",
+    "--paper-2": "#e2e5d8",
+    "--paper-3": "#d5d9c8",
+    "--card": "#f8f9f3",
+    "--ink": "#1f2428",
+    "--ink-2": "#485055",
+    "--ink-3": "#78807c",
+    "--rule": "#c6ccb9",
+    "--accent": "#1f6391",
+    "--accent-soft": "#d3e3ee",
+    "--green": "#3d6832",
+    "--green-soft": "#d8e4cc",
+    "--brass": "#a3552f",
+    "--amber-soft": "#ecdfb4",
+    "--blue": "#3a4296"
+   },
+   "band": "linear-gradient(90deg, #1f6391 0 45%, #a84a32 45% 55%, #1f6391 55%)"
+  }
+ },
+ {
+  "id": "subutai",
+  "name": "Subutai",
+  "full": "Subutai (Sübe'etei) of the Uriankhai",
+  "dates": "c. 1175–1248",
+  "epithet": "Columns far apart, one battle",
+  "era": "Medieval world",
+  "tone": "#3a315f",
+  "selfWords": [
+   "Subutai",
+   "Subotai",
+   "Subedei",
+   "Subetei",
+   "Sübe'etei",
+   "Tsubodai"
+  ],
+  "rivalWords": [
+   "Kalka",
+   "Mohi",
+   "Legnica",
+   "Liegnitz",
+   "Béla IV",
+   "Bela IV",
+   "Sajó",
+   "Ryazan",
+   "Sit River",
+   "Jin dynasty",
+   "Kaifeng",
+   "Cumans",
+   "Kipchaks",
+   "Khwarazm",
+   "Mstislav"
+  ],
+  "theme": {
+   "label": "Campaign tent",
+   "vars": {
+    "--paper": "#efeadf",
+    "--paper-2": "#e4ddcd",
+    "--paper-3": "#d6cdb9",
+    "--card": "#f8f5ec",
+    "--ink": "#24212c",
+    "--ink-2": "#4f4a54",
+    "--ink-3": "#857e7a",
+    "--rule": "#cbc1ab",
+    "--accent": "#3a315f",
+    "--accent-soft": "#dcd8e6",
+    "--green": "#4b5a2a",
+    "--green-soft": "#dfe3c9",
+    "--brass": "#8a5a2e",
+    "--amber-soft": "#eedcb6",
+    "--blue": "#1f5570"
+   },
+   "band": "linear-gradient(90deg, #3a315f 0 46%, #8a5a2e 46% 54%, #5c4130 54% 92%, #cbc1ab 92%)"
+  }
+ },
+ {
+  "id": "yi",
+  "name": "Yi Sun-sin",
+  "full": "Yi Sun-sin (Chungmugong)",
+  "dates": "1545–1598",
+  "epithet": "Choose the water, then fight",
+  "era": "Early modern",
+  "tone": "#1d3461",
+  "selfWords": [
+   "Yi Sun-sin",
+   "Yi Sun-shin",
+   "Yi Sunsin",
+   "Admiral Yi",
+   "Chungmugong",
+   "이순신"
+  ],
+  "rivalWords": [
+   "Hansan",
+   "Myeongnyang",
+   "Noryang",
+   "Chilcheollyang",
+   "Okpo",
+   "Sacheon",
+   "Imjin War",
+   "Hideyoshi",
+   "Wakisaka",
+   "Won Gyun",
+   "Turtle ship",
+   "Kurushima",
+   "Todo Takatora"
+  ],
+  "theme": {
+   "label": "Joseon Korea",
+   "vars": {
+    "--paper": "#f3f1eb",
+    "--paper-2": "#e8e5dc",
+    "--paper-3": "#dbd7cc",
+    "--card": "#fbfaf6",
+    "--ink": "#1c2233",
+    "--ink-2": "#484e5e",
+    "--ink-3": "#80848d",
+    "--rule": "#cdc9be",
+    "--accent": "#1d3461",
+    "--accent-soft": "#d6ddeb",
+    "--green": "#2a6a4e",
+    "--green-soft": "#d2e6da",
+    "--brass": "#b0392e",
+    "--amber-soft": "#f1e2bf",
+    "--blue": "#24558f"
+   },
+   "band": "linear-gradient(90deg, #1d3461 0 55%, #b0392e 55% 70%, #2a6a4e 70% 85%, #c9a23a 85%)"
+  }
+ },
+ {
+  "id": "gustavus",
+  "name": "Gustavus",
+  "full": "Gustavus Adolphus (Gustav II Adolf) of Sweden",
+  "dates": "1594–1632",
+  "epithet": "Firepower, drill and a secure base",
+  "era": "Early modern",
+  "tone": "#1d5a94",
+  "selfWords": [
+   "Gustavus Adolphus",
+   "Gustav II Adolf",
+   "Gustavus",
+   "Gustav Adolf",
+   "Lion of the North"
+  ],
+  "rivalWords": [
+   "Breitenfeld",
+   "Lützen",
+   "Lutzen",
+   "Tilly",
+   "Wallenstein",
+   "Alte Veste",
+   "Pappenheim",
+   "Thirty Years",
+   "Magdeburg",
+   "Rain am Lech",
+   "Catholic League"
+  ],
+  "theme": {
+   "label": "Swedish blue",
+   "vars": {
+    "--paper": "#edf2f3",
+    "--paper-2": "#e0e7ea",
+    "--paper-3": "#d1dade",
+    "--card": "#f8fbfb",
+    "--ink": "#1a2530",
+    "--ink-2": "#47535e",
+    "--ink-3": "#7b8791",
+    "--rule": "#c2ccd2",
+    "--accent": "#1d5a94",
+    "--accent-soft": "#d2e2f0",
+    "--green": "#2c654f",
+    "--green-soft": "#d1e5da",
+    "--brass": "#c29a1f",
+    "--amber-soft": "#f5e7b0",
+    "--blue": "#27489c"
+   },
+   "band": "linear-gradient(90deg, #1d5a94 0 28%, #e0b526 28% 38%, #1d5a94 38%)"
   }
  },
  {
@@ -189,6 +568,159 @@ FD.COMMANDER_INDEX = [
   }
  },
  {
+  "id": "marlborough",
+  "name": "Marlborough",
+  "full": "John Churchill, 1st Duke of Marlborough",
+  "dates": "1650–1722",
+  "epithet": "Arrive unexpected, fed and shod",
+  "era": "Early modern",
+  "tone": "#9c2a22",
+  "selfWords": [
+   "Marlborough",
+   "John Churchill"
+  ],
+  "rivalWords": [
+   "Blenheim",
+   "Ramillies",
+   "Oudenarde",
+   "Malplaquet",
+   "Tallard",
+   "Villars",
+   "Villeroi",
+   "Vendôme",
+   "Schellenberg",
+   "Elixheim",
+   "Bouchain",
+   "Ne Plus Ultra",
+   "Spanish Succession",
+   "Louis XIV"
+  ],
+  "theme": {
+   "label": "Queen Anne",
+   "vars": {
+    "--paper": "#f7f2e3",
+    "--paper-2": "#eee7d3",
+    "--paper-3": "#e2d9c0",
+    "--card": "#fdfbf2",
+    "--ink": "#1f2437",
+    "--ink-2": "#4b4f61",
+    "--ink-3": "#858480",
+    "--rule": "#d4caaf",
+    "--accent": "#9c2a22",
+    "--accent-soft": "#f0d6ce",
+    "--green": "#2c5d46",
+    "--green-soft": "#d7e4d5",
+    "--brass": "#b08a2e",
+    "--amber-soft": "#f3e3b4",
+    "--blue": "#223f7a"
+   },
+   "band": "linear-gradient(90deg, #9c2a22 0 60%, #b08a2e 60% 68%, #223f7a 68%)"
+  }
+ },
+ {
+  "id": "frederick",
+  "name": "Frederick",
+  "full": "Frederick II of Prussia, \"the Great\"",
+  "dates": "1712–1786",
+  "epithet": "Strength at one point, against the flank",
+  "era": "Early modern",
+  "tone": "#12405f",
+  "selfWords": [
+   "Frederick the Great",
+   "Frederick II of Prussia",
+   "Friedrich II",
+   "Friedrich der Große",
+   "Old Fritz",
+   "Alter Fritz"
+  ],
+  "rivalWords": [
+   "Leuthen",
+   "Rossbach",
+   "Kolin",
+   "Kunersdorf",
+   "Zorndorf",
+   "Hochkirch",
+   "Torgau",
+   "Mollwitz",
+   "Hohenfriedberg",
+   "Daun",
+   "Maria Theresa",
+   "Seven Years",
+   "Silesian War",
+   "Laudon",
+   "Soubise"
+  ],
+  "theme": {
+   "label": "Prussian blue",
+   "vars": {
+    "--paper": "#f3f3f4",
+    "--paper-2": "#e6e7e9",
+    "--paper-3": "#d7d9dc",
+    "--card": "#fcfcfc",
+    "--ink": "#16181c",
+    "--ink-2": "#464a51",
+    "--ink-3": "#7e838b",
+    "--rule": "#c8cbd0",
+    "--accent": "#12405f",
+    "--accent-soft": "#d2dfe8",
+    "--green": "#34603f",
+    "--green-soft": "#d6e3d6",
+    "--brass": "#868c94",
+    "--amber-soft": "#efe6c6",
+    "--blue": "#1f4f8f"
+   },
+   "band": "linear-gradient(90deg, #16181c 0 34%, #c8cbd0 34% 66%, #12405f 66%)"
+  }
+ },
+ {
+  "id": "suvorov",
+  "name": "Suvorov",
+  "full": "Alexander Vasilyevich Suvorov",
+  "dates": "1730–1800",
+  "epithet": "The eye, speed and the onslaught",
+  "era": "Age of revolutions",
+  "tone": "#2a4f3e",
+  "selfWords": [
+   "Suvorov",
+   "Suworow",
+   "Souvorov"
+  ],
+  "rivalWords": [
+   "Izmail",
+   "Rymnik",
+   "Trebbia",
+   "Battle of Novi",
+   "Battle_of_Novi",
+   "Masséna",
+   "Massena",
+   "Macdonald",
+   "Moreau",
+   "Joubert",
+   "Gotthard"
+  ],
+  "theme": {
+   "label": "Imperial Russia",
+   "vars": {
+    "--paper": "#eef1ee",
+    "--paper-2": "#e1e7e2",
+    "--paper-3": "#d1dad4",
+    "--card": "#f9fbf9",
+    "--ink": "#1c2420",
+    "--ink-2": "#47534c",
+    "--ink-3": "#78837c",
+    "--rule": "#c2ccc5",
+    "--accent": "#2a4f3e",
+    "--accent-soft": "#d2e0d7",
+    "--green": "#1f6072",
+    "--green-soft": "#d0e2e6",
+    "--brass": "#b8691f",
+    "--amber-soft": "#f2e2c6",
+    "--blue": "#3a4c8a"
+   },
+   "band": "linear-gradient(90deg, #1c2420 0 20%, #c4701f 20% 40%, #1c2420 40% 60%, #c4701f 60% 80%, #1c2420 80%)"
+  }
+ },
+ {
   "id": "napoleon",
   "name": "Napoleon",
   "full": "Napoleon Bonaparte",
@@ -234,6 +766,211 @@ FD.COMMANDER_INDEX = [
     "--blue": "#2a5d9f"
    },
    "band": "linear-gradient(90deg, #22356b 0 33%, #b8922e 33% 33.6%, #f7f5ec 33.6% 66.4%, #b8922e 66.4% 67%, #a3212f 67%)"
+  }
+ },
+ {
+  "id": "wellington",
+  "name": "Wellington",
+  "full": "Arthur Wellesley, 1st Duke of Wellington",
+  "dates": "1769–1852",
+  "epithet": "Guessing the other side of the hill",
+  "era": "Age of revolutions",
+  "tone": "#8a2320",
+  "selfWords": [
+   "Duke of Wellington",
+   "Duke_of_Wellington",
+   "Arthur Wellesley",
+   "Arthur_Wellesley",
+   "Lord Wellington"
+  ],
+  "rivalWords": [
+   "Waterloo",
+   "Torres Vedras",
+   "Torres_Vedras",
+   "Salamanca",
+   "Vitoria",
+   "Talavera",
+   "Assaye",
+   "Masséna",
+   "Massena",
+   "Soult",
+   "Marmont",
+   "Peninsular War",
+   "Peninsular_War"
+  ],
+  "theme": {
+   "label": "Regency Britain",
+   "vars": {
+    "--paper": "#ece4cc",
+    "--paper-2": "#e0d6b9",
+    "--paper-3": "#d2c7a5",
+    "--card": "#f6f0de",
+    "--ink": "#1b1a17",
+    "--ink-2": "#48443a",
+    "--ink-3": "#787261",
+    "--rule": "#c5ba98",
+    "--accent": "#8a2320",
+    "--accent-soft": "#e6cdc0",
+    "--green": "#2c5438",
+    "--green-soft": "#d2dcc6",
+    "--brass": "#8a7238",
+    "--amber-soft": "#eedca2",
+    "--blue": "#263a63"
+   },
+   "band": "linear-gradient(90deg, #1b1a17 0 42%, #8a2320 42% 58%, #1b1a17 58%)"
+  }
+ },
+ {
+  "id": "nelson",
+  "name": "Nelson",
+  "full": "Horatio Nelson, 1st Viscount Nelson",
+  "dates": "1758–1805",
+  "epithet": "Engage the enemy more closely",
+  "era": "Age of revolutions",
+  "tone": "#1f3a5f",
+  "selfWords": [
+   "Horatio Nelson",
+   "Horatio_Nelson",
+   "Lord Nelson",
+   "Admiral Nelson",
+   "Viscount Nelson"
+  ],
+  "rivalWords": [
+   "Trafalgar",
+   "Battle of the Nile",
+   "Battle_of_the_Nile",
+   "Aboukir",
+   "Abukir",
+   "Villeneuve",
+   "Brueys",
+   "Battle of Copenhagen",
+   "Battle_of_Copenhagen",
+   "Cape St Vincent",
+   "Cape_St._Vincent",
+   "Santa Cruz de Tenerife"
+  ],
+  "theme": {
+   "label": "Royal Navy",
+   "vars": {
+    "--paper": "#e8edef",
+    "--paper-2": "#dae2e6",
+    "--paper-3": "#cad5db",
+    "--card": "#f6f9fa",
+    "--ink": "#161f2a",
+    "--ink-2": "#414e5b",
+    "--ink-3": "#72808c",
+    "--rule": "#bac6ce",
+    "--accent": "#1f3a5f",
+    "--accent-soft": "#cfdbe8",
+    "--green": "#23655a",
+    "--green-soft": "#cfe2dd",
+    "--brass": "#a88734",
+    "--amber-soft": "#f0e4bf",
+    "--blue": "#235a96"
+   },
+   "band": "linear-gradient(90deg, #1f3a5f 0 40%, #b8963c 40% 60%, #1f3a5f 60%)"
+  }
+ },
+ {
+  "id": "bolivar",
+  "name": "Bolívar",
+  "full": "Simón Bolívar",
+  "dates": "1783–1830",
+  "epithet": "Beaten often, never for long",
+  "era": "Age of revolutions",
+  "tone": "#a02a2c",
+  "selfWords": [
+   "Bolívar",
+   "Bolivar",
+   "Bol%C3%ADvar",
+   "El Libertador"
+  ],
+  "rivalWords": [
+   "Boyacá",
+   "Boyaca",
+   "Boyac%C3%A1",
+   "Carabobo",
+   "Morillo",
+   "Boves",
+   "Barreiro",
+   "Monteverde",
+   "Junín",
+   "Ayacucho",
+   "Pantano de Vargas"
+  ],
+  "theme": {
+   "label": "Gran Colombia",
+   "vars": {
+    "--paper": "#f7f3e3",
+    "--paper-2": "#eee8d0",
+    "--paper-3": "#e3dbbd",
+    "--card": "#fdfbf1",
+    "--ink": "#22201b",
+    "--ink-2": "#524d3d",
+    "--ink-3": "#867f68",
+    "--rule": "#d6cda9",
+    "--accent": "#a02a2c",
+    "--accent-soft": "#f0d6cd",
+    "--green": "#2c6646",
+    "--green-soft": "#d6e4d2",
+    "--brass": "#b58f1c",
+    "--amber-soft": "#f4e3a6",
+    "--blue": "#234586"
+   },
+   "band": "linear-gradient(90deg, #d4ad2a 0 50%, #234586 50% 75%, #a02a2c 75%)"
+  }
+ },
+ {
+  "id": "grant",
+  "name": "Grant",
+  "full": "Ulysses S. Grant",
+  "dates": "1822–1885",
+  "epithet": "Strike, and keep moving on",
+  "era": "Nineteenth century",
+  "tone": "#2d4a78",
+  "selfWords": [
+   "Ulysses S. Grant",
+   "Ulysses_S._Grant",
+   "Ulysses Grant",
+   "General Grant",
+   "U. S. Grant"
+  ],
+  "rivalWords": [
+   "Vicksburg",
+   "Shiloh",
+   "Fort Donelson",
+   "Fort_Donelson",
+   "Appomattox",
+   "Robert E. Lee",
+   "Robert_E._Lee",
+   "Pemberton",
+   "Chattanooga",
+   "Cold Harbor",
+   "Cold_Harbor",
+   "Spotsylvania",
+   "Overland Campaign",
+   "Overland_Campaign"
+  ],
+  "theme": {
+   "label": "Union Army",
+   "vars": {
+    "--paper": "#edece2",
+    "--paper-2": "#e1dfd1",
+    "--paper-3": "#d3d1c0",
+    "--card": "#f8f7f0",
+    "--ink": "#1c2029",
+    "--ink-2": "#484d57",
+    "--ink-3": "#7a7e84",
+    "--rule": "#c7c5b3",
+    "--accent": "#2d4a78",
+    "--accent-soft": "#d3dcea",
+    "--green": "#39603f",
+    "--green-soft": "#d6e1d0",
+    "--brass": "#a5822e",
+    "--amber-soft": "#efe0b0",
+    "--blue": "#23588a"
+   },
+   "band": "linear-gradient(90deg, #2d4a78 0 70%, #b08a30 70% 85%, #8c3b33 85%)"
   }
  }
 ];

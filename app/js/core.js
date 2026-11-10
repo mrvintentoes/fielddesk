@@ -189,7 +189,15 @@
     t = t || FD.current(); const r = FD.rt(t.id);
     if (FD.isInternal(t.url)) { S.pageCache.delete(t.id); FD.renderPanes(); return; }
     if (r.error) { r.error = null; r.loading = true; if (r.made) window.fd.invoke('tab:navigate', { id: t.id, url: t.url }); FD.renderAll(); return; }
-    if (r.loading && !hard) { window.fd.invoke('tab:action', { id: t.id, action: 'stop' }); return; }
+    if (r.loading && !hard) {
+      // Stopping leaves the page that was already there; the address should say so.
+      window.fd.invoke('tab:action', { id: t.id, action: 'stop' }).then((now) => {
+        r.loading = false;
+        if (r.pending && now && now.url && FD.isWeb(now.url)) { t.url = now.url; t.title = now.title || t.title; }
+        r.pending = null; FD.renderAll();
+      });
+      return;
+    }
     if (r.made) window.fd.invoke('tab:action', { id: t.id, action: hard ? 'hard-reload' : 'reload' });
   };
   FD.canBack = (t) => (FD.isInternal(t.url) ? !!t.iback : (FD.rt(t.id).canBack || !!t.origin));

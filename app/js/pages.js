@@ -67,8 +67,8 @@
       drawTiles();
       const lead = FD.lead();
       const quote = lead && lead.loaded ? FD.randomQuote(lead) : null;
-      const others = s.order.map((id) => s.workspaces[id]).filter((x) => x && x.id !== w.id && x.kind !== 'loose' && (!resume || x.id !== resume.id)).slice(0, 4);
       page.appendChild(h('div', { class: 'page-inner nt' },
+        h('div', { class: 'nt-crest', html: FD.CREST }),
         h('div', { class: 'nt-mark' }, 'Field Desk'),
         w.kind === 'loose' ? h('p', { class: 'nt-sub' }, lead && lead.theme && s.settings.themes !== false ? 'One question, twenty tabs. ' + lead.theme.label + ', by ' + lead.name + '.' : 'One question, twenty tabs.') : h('p', { class: 'nt-sub' }, w.name + (w.question ? ': ' + w.question : '')),
         search,
@@ -80,9 +80,6 @@
         quote ? h('div', { class: 'nt-quote' }, FD.quoteCard(quote, true), h('div', { class: 'muted small' }, lead.name)) : null,
         h('h3', { class: 'nt-h' }, 'Pinned sites'),
         tiles,
-        others.length ? h('h3', { class: 'nt-h' }, 'Other workspaces') : null,
-        others.length ? h('div', { class: 'nt-ws' }, others.map((x) => h('button', { class: 'nt-ws-row', onclick: () => FD.openWorkspace(x.id) },
-          h('strong', null, x.name), x.question ? h('span', { class: 'muted' }, ' · ' + FD.trunc(x.question, 70)) : null))) : null,
         h('p', { class: 'nt-foot muted small' },
           'Pin a commander from the rail on the right. Select text on any page and right-click to clip it. ',
           FD.link(t, 'fielddesk://about', 'Shortcuts and privacy'))));

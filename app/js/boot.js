@@ -13,5 +13,7 @@
   FD.renderAll();
   FD.save();
   window.addEventListener('beforeunload', () => window.fd.saveSync(S.state));
+  window.addEventListener('blur', () => document.body.classList.add('blurred'));
+  window.addEventListener('focus', () => document.body.classList.remove('blurred'));
   document.documentElement.classList.add('ready');
 })();

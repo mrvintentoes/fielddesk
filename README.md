@@ -1,7 +1,7 @@
 # Field Desk
 
-A desktop browser for people who open twenty tabs while following one question.
-Real tabs and a fast everyday browser first; then a desk rail on the right edge for pinned
+A desktop browser for people who open twenty tabs while following one question, dressed as a
+campaign desk. Real tabs and a fast everyday browser first; then a desk rail on the right edge for pinned
 commanders, clipped passages, side-by-side sources and research sessions you can pick up tomorrow.
 
 ## Launch
@@ -38,11 +38,19 @@ forward, reload, bookmarks, history, find in page, zoom, reopen closed tab, sess
 Links that ask for a new tab get one; Ctrl/Cmd-click and middle-click open in the background.
 The new tab page has search, pinned sites and Resume.
 
-**Pin a Commander.** Alexander, Hannibal, Caesar, Napoleon or Turenne, pinned to the right edge
-as a small portrait and name. The pin stays as you change tabs and comes back after a restart.
-Click it for the drawer: your working question, four source-linked decisions from the campaigns,
-and the passages you have saved. Right-click selected text on any page to clip it to a pinned
+**Pin a Commander.** Twenty to choose from, Alexander to Grant (**Pins** on the rail, with a
+filter box). A pin sits on the right edge as a small medallion and name, stays as you change tabs
+and comes back after a restart. Click it for the drawer. The commander stands at the top right of
+his file as a drawn figure in period dress, above your working question, four source-linked
+decisions from his campaigns, the passages you have saved, and a few of his own lines, each marked
+attested, attributed or disputed. Right-click selected text on any page to clip it to a pinned
 commander, optionally straight into a category.
+
+**Themes and remarks.** The pinned commander sets the colours of the whole app: Caesar is Roman
+red and gold, Napoleon is Imperial French, Yi Sun-sin is Joseon Korea, and so on. With two pinned,
+the one you opened last leads. Now and then he passes a short remark on the page you have opened.
+Remarks are written for Field Desk, labelled as in character, and chosen on your computer from the
+page's address and title only; nothing is sent anywhere. Both can be turned off under **Pins**.
 
 **Compare.** Pin two and the drawer gains a Compare view: one column each, evidence filed under
 intelligence, marching tempo, logistics, and recovery after setbacks. Mark any item as supporting
@@ -89,10 +97,20 @@ to which, where you are, and which branches you abandoned. Click any entry to go
 - Pages are refused camera, microphone, location and notification access.
 - The app's own window only ever loads the app.
 
+## Weight
+
+Only the pinned commanders' files are read at startup; figures load when a file is opened. After a
+restart only the tab you are looking at loads; the others load when you select them. At most eight
+pages are kept live at once and the rest are put to sleep and reload when you return to them.
+Figure animation stops when the window is not in front. `node test/measure.js` prints launch time
+and memory by process.
+
 ## A note on the history
 
 Commander decision cards and the Ulm scenario are Field Desk's own summaries, each with a citation
-and a link. They are not quotations. Scenario simplifications are labelled "Scenario assumption" in
+and a link. They are not quotations. Quotes are given with their source and a status; many were
+written from memory of standard translations and most links could not be opened from the build
+machine, so treat them as leads. Scenario simplifications are labelled "Scenario assumption" in
 the app. Check anything you intend to rely on against the source.
 
 ## Checks
@@ -113,6 +131,10 @@ app/               the UI (plain HTML, CSS and JavaScript; no build step)
   js/core.js       tabs, panes, split view, address bar, commands
   js/drawer.js     desk rail, commander files, compare, notes, workspaces, trail
   js/pages.js      new tab, Ulm decision, reading room, speech practice
-  js/data-*.js     commander decisions and the Ulm scenario
+  js/persona.js    themes, quotes, in-character remarks
+  js/commanders/   one file per commander: decisions, quotes, remarks, portrait
+  js/figures/      one standing figure per commander (original SVG)
+  js/data-ulm.js   the Ulm scenario
+tools/             validators that rebuild the commander index and check the figures
 test/              automated checks that drive the real app
 ```

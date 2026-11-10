@@ -43,6 +43,31 @@ window.FD = window.FD || {};
   };
   FD.ensureCommanders = (ids) => Promise.all((ids || []).map(FD.ensureCommander));
 
+  // Standing figures: one small file each, read only when that commander's file is opened.
+  const figures = new Map(); const figPending = new Set();
+  const fillFigures = (id) => document.querySelectorAll('[data-figure="' + id + '"]').forEach((el) => { el.innerHTML = figures.get(id); el.classList.add('has-figure'); });
+  FD.defineFigure = function (id, svg) { if (byId.has(id) && /^<svg[\s>]/.test(svg)) { figures.set(id, svg); fillFigures(id); } };
+  FD.figure = function (id) {
+    if (figures.has(id)) return figures.get(id);
+    if (byId.has(id) && !figPending.has(id)) {
+      figPending.add(id);
+      const s = document.createElement('script');
+      s.src = 'js/figures/' + id + '.js';
+      s.onerror = () => {};
+      document.head.appendChild(s);
+    }
+    return '';
+  };
+  // A slot for the figure; it shows the medallion until (or unless) the drawing arrives.
+  FD.figureEl = function (id, cls) {
+    const svg = FD.figure(id);
+    const el = document.createElement('div');
+    el.className = 'figure ' + (cls || '') + (svg ? ' has-figure' : '');
+    el.dataset.figure = id;
+    el.innerHTML = svg || FD.portrait(id);
+    return el;
+  };
+
   // Until a commander's own portrait is loaded, show a plain medallion with their initial.
   FD.portrait = function (id) {
     const c = byId.get(id);
