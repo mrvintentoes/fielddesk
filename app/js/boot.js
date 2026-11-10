@@ -6,6 +6,8 @@
   S.firstRun = !loaded;
   S.state = FD.repairState(loaded);
   try { const info = await window.fd.invoke('app:info'); document.documentElement.dataset.platform = info.platform; } catch (_) {}
+  FD.onCommanderLoaded = FD.debounce(() => { FD.renderRail(); FD.renderDrawer(); FD.applyTheme(); FD.refreshPages('fielddesk://newtab'); }, 30);
+  await FD.ensureCommanders(FD.ws().pins);   // only the pinned commanders' files are read at startup
   FD.wire();
   FD.pushPins();
   FD.renderAll();

@@ -13,6 +13,8 @@
     slots: {},
     frozen: 0,
     lastLayout: null,
+    openerOf: {},        // tab id -> tab that opened it (this session only)
+    autoTab: null,       // tab created only to fill the second pane
     typed: {},           // tab id -> the next navigation was typed in the address bar
     pendingParent: {},   // tab id -> trail node that opened this tab
     addrFocus: false,
@@ -50,7 +52,7 @@
         const i = w.tabs.findIndex((t) => t.id === w.active);
         const other = w.tabs[i + 1] || w.tabs.find((t) => t.id !== w.active);
         if (other) w.split.right = other.id;
-        else { const t = mkTab(NEWTAB); w.tabs.push(t); w.split.right = t.id; }
+        else { const t = mkTab(NEWTAB); w.tabs.push(t); w.split.right = t.id; S.autoTab = t.id; }
       }
     } else {
       w.split.right = null;
@@ -59,13 +61,26 @@
   }
 
   // ------------------------------------------------------------ tabs
+  // Changing tab or workspace abandons whatever was half-typed in the address bar or find bar.
+  function leaveAddress() {
+    if (FD.hideSuggest) FD.hideSuggest();
+    S.addrTab = null;
+    if (FD.closeFind) FD.closeFind(true);
+  }
   FD.newTab = function (url, opts) {
     opts = opts || {};
     url = url || NEWTAB;
     const w = FD.ws();
     const t = mkTab(url);
     const openerIndex = opts.openerId ? w.tabs.findIndex((x) => x.id === opts.openerId) : -1;
-    if (openerIndex >= 0) w.tabs.splice(openerIndex + 1, 0, t); else w.tabs.push(t);
+    if (openerIndex >= 0) {
+      // After the opener and after any tabs it has already opened, as other browsers do.
+      let at = openerIndex + 1;
+      while (w.tabs[at] && S.openerOf[w.tabs[at].id] === opts.openerId) at++;
+      w.tabs.splice(at, 0, t); S.openerOf[t.id] = opts.openerId;
+    } else if (opts.index != null) w.tabs.splice(Math.min(opts.index, w.tabs.length), 0, t);
+    else w.tabs.push(t);
+    if (!opts.background) leaveAddress();
     if (opts.openerId && w.trail.cur[opts.openerId]) S.pendingParent[t.id] = w.trail.cur[opts.openerId];
     if (opts.typed) S.typed[t.id] = true;
     if (opts.split) {
@@ -85,8 +100,10 @@
     const i = w.tabs.findIndex((t) => t.id === id);
     if (i < 0) return;
     const t = w.tabs[i];
-    if (!(t.url === NEWTAB)) {
-      S.state.closed.push({ url: t.url, title: t.title, ws: w.id, index: i });
+    leaveAddress();
+    const closedUrl = t.url === NEWTAB && t.webUrl ? t.webUrl : t.url;
+    if (closedUrl !== NEWTAB) {
+      S.state.closed.push({ url: closedUrl, title: t.url === closedUrl ? t.title : (t.webMeta && t.webMeta.title) || '', ws: w.id, index: i });
       if (S.state.closed.length > 30) S.state.closed.shift();
     }
     if (FD.rt(id).made) window.fd.invoke('tab:destroy', { id });
@@ -106,9 +123,12 @@
   };
 
   FD.reopenTab = function () {
-    const c = S.state.closed.pop();
-    if (!c) { FD.toast('No closed tab to reopen'); return; }
-    const t = FD.newTab(c.url);
+    const closed = S.state.closed; const here = FD.ws().id;
+    let at = -1;
+    for (let i = closed.length - 1; i >= 0; i--) if (closed[i].ws === here) { at = i; break; }
+    if (at < 0) { FD.toast(closed.length ? 'No closed tab in this workspace' : 'No closed tab to reopen'); return; }
+    const c = closed.splice(at, 1)[0];
+    const t = FD.newTab(c.url, { index: c.index });
     t.title = c.title || t.title;
     FD.renderTabs();
   };
@@ -116,6 +136,7 @@
   FD.selectTab = function (id) {
     const w = FD.ws();
     if (!FD.tab(id)) return;
+    leaveAddress();
     if (w.split.on) {
       if (id === w.active) S.focus = 'left';
       else if (id === w.split.right) S.focus = 'right';
@@ -130,11 +151,17 @@
     const r = FD.rt(t.id);
     r.error = null;
     if (FD.isInternal(url)) {
+      if (t.url !== url) t.iback = { url: t.url, title: t.title, favicon: t.favicon };
       t.url = url; t.title = FD.internalTitle(url); t.favicon = null; t.origin = null; t.webUrl = null;
       S.pageCache.delete(t.id);
     } else {
-      if (FD.isInternal(t.url)) t.origin = t.url;
-      t.webUrl = null; t.url = url; t.title = ''; t.favicon = null; r.loading = true;
+      if (FD.isInternal(t.url)) {
+        t.origin = t.url;
+        // Leaving a built-in page for a new site: drop the old view so its history
+        // (pages already backed out of) cannot come back under the Back button.
+        if (r.made) { window.fd.invoke('tab:destroy', { id: t.id }); r.made = false; r.canBack = false; r.canFwd = false; }
+      }
+      t.iback = null; t.webUrl = null; t.webMeta = null; t.url = url; t.title = ''; t.favicon = null; r.loading = true; r.pending = url;
       if (opts.typed) S.typed[t.id] = true;
       if (r.made) window.fd.invoke('tab:navigate', { id: t.id, url });
     }
@@ -143,15 +170,19 @@
 
   FD.back = function (t) {
     t = t || FD.current(); const r = FD.rt(t.id);
-    if (FD.isInternal(t.url)) return;
+    if (FD.isInternal(t.url)) {
+      const p = t.iback; if (!p) return;
+      t.iback = null; t.url = p.url; t.title = p.title || FD.internalTitle(p.url); t.favicon = p.favicon || null; t.webUrl = null;
+      S.pageCache.delete(t.id); FD.renderAll(); FD.touch(); return;
+    }
     if (r.error && r.made && r.canBack) { r.error = null; window.fd.invoke('tab:action', { id: t.id, action: 'back' }); FD.renderAll(); return; }
     if (r.canBack && r.made) window.fd.invoke('tab:action', { id: t.id, action: 'back' });
-    else if (t.origin) { t.webUrl = t.url; t.url = t.origin; t.title = FD.internalTitle(t.url); t.favicon = null; r.error = null; FD.renderAll(); FD.touch(); }
+    else if (t.origin) { t.webUrl = t.url; t.webMeta = { title: t.title, favicon: t.favicon }; t.url = t.origin; t.title = FD.internalTitle(t.url); t.favicon = null; r.error = null; FD.renderAll(); FD.touch(); }
   };
   FD.forward = function (t) {
     t = t || FD.current(); const r = FD.rt(t.id);
     if (FD.isInternal(t.url)) {
-      if (t.webUrl) { const u = t.webUrl; t.origin = t.url; t.webUrl = null; t.url = u; t.title = ''; if (!r.made) r.loading = true; FD.renderAll(); FD.touch(); window.fd.invoke('tab:action', { id: t.id, action: 'focus' }); }
+      if (t.webUrl) { const u = t.webUrl; const m = t.webMeta || {}; t.origin = t.url; t.webUrl = null; t.webMeta = null; t.url = u; t.title = m.title || ''; t.favicon = m.favicon || null; if (!r.made) r.loading = true; FD.renderAll(); FD.touch(); window.fd.invoke('tab:action', { id: t.id, action: 'focus' }); }
     } else if (r.canFwd) window.fd.invoke('tab:action', { id: t.id, action: 'forward' });
   };
   FD.reload = function (t, hard) {
@@ -161,7 +192,7 @@
     if (r.loading && !hard) { window.fd.invoke('tab:action', { id: t.id, action: 'stop' }); return; }
     if (r.made) window.fd.invoke('tab:action', { id: t.id, action: hard ? 'hard-reload' : 'reload' });
   };
-  FD.canBack = (t) => !FD.isInternal(t.url) && (FD.rt(t.id).canBack || !!t.origin);
+  FD.canBack = (t) => (FD.isInternal(t.url) ? !!t.iback : (FD.rt(t.id).canBack || !!t.origin));
   FD.canFwd = (t) => (FD.isInternal(t.url) ? !!t.webUrl : FD.rt(t.id).canFwd);
 
   FD.toggleSplit = function () {
@@ -169,6 +200,9 @@
     if (w.split.on) {
       if (S.focus === 'right' && FD.tab(w.split.right)) w.active = w.split.right;
       w.split.on = false; S.focus = 'left';
+      const auto = S.autoTab && FD.tab(S.autoTab);
+      if (auto && auto.url === NEWTAB && auto.id !== w.active) w.tabs.splice(w.tabs.indexOf(auto), 1);
+      S.autoTab = null;
     } else { w.split.on = true; w.split.right = null; }
     FD.renderAll(); FD.touch();
   };
@@ -191,7 +225,7 @@
   function ensureView(t) {
     const r = FD.rt(t.id);
     if (r.made || !FD.isWeb(t.url)) return;
-    r.made = true; r.loading = true;
+    r.made = true; r.loading = true; r.pending = t.url;
     window.fd.invoke('tab:create', { id: t.id, url: t.url }).then(() => { S.lastLayout = null; syncLayout(); });
   }
 
@@ -215,7 +249,9 @@
     const w = FD.ws();
     const typed = S.typed[id]; delete S.typed[id];
     const opened = S.pendingParent[id]; delete S.pendingParent[id];
-    if (!w.rabbit || !FD.isWeb(url)) return;
+    if (!w.rabbit) { delete w.trail.cur[id]; return; }
+    if (!FD.isWeb(url)) return;
+    url = FD.cleanUrl(url);
     const tr = w.trail;
     const cur = tr.nodes.find((n) => n.id === tr.cur[id]) || null;
     if (cur && cur.url === url) return;                       // a reload, or a restored tab
@@ -273,6 +309,9 @@
       h('button', { class: 'tab-close', title: 'Close tab', onclick: (e) => { e.stopPropagation(); FD.closeTab(t.id); } }, '×'));
       strip.appendChild(el);
     });
+    strip.classList.toggle('crowded', w.tabs.length > 12);
+    strip.classList.toggle('packed', w.tabs.length > 20);
+    const act = strip.querySelector('.tab.active'); if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   };
 
   FD.renderToolbar = function () {
@@ -282,7 +321,8 @@
     $('fwd-btn').disabled = !FD.canFwd(t);
     $('reload-btn').textContent = r.loading && !FD.isInternal(t.url) ? '×' : '↻';
     $('reload-btn').title = r.loading ? 'Stop' : 'Reload';
-    if (!S.addrFocus) $('address').value = t.url === NEWTAB ? '' : t.url;
+    if (!S.addrFocus || S.addrTab !== t.id) { $('address').value = t.url === NEWTAB ? '' : t.url; if (S.addrFocus) $('address').select(); }
+    S.addrTab = t.id;
     const marked = FD.isBookmarked(t.url);
     $('star-btn').textContent = marked ? '★' : '☆';
     $('star-btn').classList.toggle('on', marked);
@@ -388,6 +428,7 @@
     document.querySelectorAll('.webslot').forEach((s) => {
       const src = shots[s.dataset.tab];
       s.style.backgroundImage = src ? 'url("' + src + '")' : '';
+      s.style.backgroundSize = Math.round(s.getBoundingClientRect().width) + 'px auto';
       s.classList.add('frozen');
     });
   };
@@ -396,7 +437,8 @@
     if (--S.frozen > 0) return;
     S.lastLayout = null; syncLayout();
     await window.fd.invoke('view:unfreeze');
-    document.querySelectorAll('.webslot').forEach((s) => { s.style.backgroundImage = ''; s.classList.remove('frozen'); });
+    const slots = new Set([...document.querySelectorAll('.webslot'), ...Object.values(S.slots)]);
+    slots.forEach((s) => { s.style.backgroundImage = ''; s.style.backgroundSize = ''; s.classList.remove('frozen'); });
   };
 
   FD.focusPage = function () {
@@ -404,7 +446,7 @@
     if (FD.isWeb(t.url) && FD.rt(t.id).made && !FD.rt(t.id).error) window.fd.invoke('tab:action', { id: t.id, action: 'focus' });
   };
   FD.focusAddress = function () {
-    window.fd.invoke('ui:focus').then(() => { const a = $('address'); a.focus(); a.select(); });
+    window.fd.invoke('ui:focus').then(() => { const a = $('address'); const t = FD.current(); a.focus(); a.value = t.url === NEWTAB ? '' : t.url; a.select(); });
   };
 
   let toastTimer = null;
@@ -426,11 +468,13 @@
 
   FD.openWorkspace = function (id) {
     if (!S.state.workspaces[id] || id === S.state.activeWs) return;
+    leaveAddress();
     const old = FD.ws();
     old.tabs.forEach((t) => { if (FD.rt(t.id).made) window.fd.invoke('tab:destroy', { id: t.id }); delete t.webUrl; });
     S.rt = {}; S.pageCache.clear(); S.typed = {}; S.pendingParent = {};
     S.state.lastWs = old.id; S.state.activeWs = id; S.focus = 'left'; S.lastLayout = null;
     FD.ws().updatedAt = Date.now();
+    FD.ensureCommanders(FD.ws().pins);
     FD.renderAll(); FD.pushPins(); FD.save();
     FD.toast('Opened ' + FD.ws().name);
   };
@@ -480,6 +524,7 @@
     box.style.left = wrap.left + 'px'; box.style.width = wrap.width + 'px';
     renderSuggest();
   }
+  FD.hideSuggest = hideSuggest;
   function hideSuggest() {
     const box = $('suggest');
     if (!box.hidden) { box.hidden = true; FD.unfreeze(); }
@@ -526,19 +571,48 @@
   // ------------------------------------------------------------ find in page
   function wireFind() {
     const bar = $('findbar'), input = $('find-input');
+    // Built-in pages are part of this window, so they get their own highlighter
+    // (the CSS Highlight API) instead of Chromium's find-in-page.
+    let hits = [], hitAt = -1;
+    const clearHits = () => { hits = []; hitAt = -1; if (window.CSS && CSS.highlights) { CSS.highlights.delete('fd-find'); CSS.highlights.delete('fd-find-current'); } };
+    const pageEl = () => { const p = S.focus === 'right' ? 'right' : 'left'; return $('pane-' + p).querySelector('.page'); };
+    const findInternal = (text, forward, next) => {
+      const root = pageEl();
+      if (!next || !hits.length) {
+        clearHits();
+        if (!root || !text) return;
+        const needle = text.toLowerCase();
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n && hits.length < 500; n = walker.nextNode()) {
+          if (!n.parentElement || n.parentElement.closest('textarea, script, style')) continue;
+          const hay = n.data.toLowerCase();
+          for (let i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + needle.length)) {
+            const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + needle.length); hits.push(r);
+          }
+        }
+        hitAt = hits.length ? 0 : -1;
+      } else hitAt = (hitAt + (forward ? 1 : hits.length - 1)) % hits.length;
+      if (window.CSS && CSS.highlights && hits.length) {
+        CSS.highlights.set('fd-find', new Highlight(...hits));
+        CSS.highlights.set('fd-find-current', new Highlight(hits[hitAt]));
+        const el = hits[hitAt].startContainer.parentElement; if (el) el.scrollIntoView({ block: 'center' });
+      }
+      $('find-count').textContent = hits.length ? (hitAt + 1) + ' of ' + hits.length : 'No matches';
+    };
     const run = (forward, next) => {
       const t = FD.current(); const text = input.value;
-      if (!text) { $('find-count').textContent = ''; return; }
+      if (!text) { $('find-count').textContent = ''; clearHits(); if (FD.isWeb(t.url) && FD.rt(t.id).made) window.fd.invoke('tab:action', { id: t.id, action: 'stop-find' }); return; }
       if (FD.isWeb(t.url)) window.fd.invoke('tab:find', { id: t.id, text, forward, next });
-      else { const ok = window.find(text, false, !forward, true); $('find-count').textContent = ok ? '' : 'No matches'; input.focus(); }
+      else findInternal(text, forward, next);
     };
     FD.openFind = () => { bar.hidden = false; window.fd.invoke('ui:focus').then(() => { input.focus(); input.select(); }); scheduleLayout(); };
-    FD.closeFind = () => {
+    FD.findStep = (forward) => { if (bar.hidden) FD.openFind(); else run(forward, true); };
+    FD.closeFind = (quiet) => {
       if (bar.hidden) return;
-      bar.hidden = true; $('find-count').textContent = '';
+      bar.hidden = true; $('find-count').textContent = ''; clearHits();
       const t = FD.current();
-      if (FD.isWeb(t.url) && FD.rt(t.id).made) window.fd.invoke('tab:action', { id: t.id, action: 'stop-find' });
-      scheduleLayout(); FD.focusPage();
+      if (t && FD.isWeb(t.url) && FD.rt(t.id).made) window.fd.invoke('tab:action', { id: t.id, action: 'stop-find' });
+      scheduleLayout(); if (quiet !== true) FD.focusPage();
     };
     input.addEventListener('input', () => run(true, false));
     input.addEventListener('keydown', (e) => {
@@ -547,7 +621,7 @@
     });
     $('find-next').onclick = () => run(true, true);
     $('find-prev').onclick = () => run(false, true);
-    $('find-close').onclick = FD.closeFind;
+    $('find-close').onclick = () => FD.closeFind();
   }
 
   // ------------------------------------------------------------ divider
@@ -596,7 +670,15 @@
       case 'tab-index': { const x = p.index < 0 ? w.tabs[w.tabs.length - 1] : w.tabs[p.index]; if (x) FD.selectTab(x.id); break; }
       case 'bookmark': FD.toggleBookmark(); break;
       case 'find': FD.openFind(); break;
-      case 'zoom-in': case 'zoom-out': case 'zoom-reset': case 'devtools': act(name); break;
+      case 'find-next': FD.findStep(true); break;
+      case 'find-prev': FD.findStep(false); break;
+      case 'zoom-in': case 'zoom-out': case 'zoom-reset':
+        if (FD.isInternal(t.url)) {
+          S.pageZoom = name === 'zoom-reset' ? 1 : Math.min(2, Math.max(0.6, (S.pageZoom || 1) + (name === 'zoom-in' ? 0.1 : -0.1)));
+          document.documentElement.style.setProperty('--page-zoom', String(S.pageZoom));
+        } else act(name);
+        break;
+      case 'devtools': act(name); break;
       case 'split': FD.toggleSplit(); break;
       case 'split-tab': FD.splitTab(t.id); break;
       case 'toggle-rail': FD.toggleRail(); break;
@@ -649,8 +731,8 @@
       const r = FD.rt(u.id);
       r.loading = u.loading; r.canBack = u.canBack; r.canFwd = u.canFwd;
       if (FD.isInternal(t.url)) { if (FD.isWeb(u.url) && t.webUrl) t.webUrl = u.url; }
-      else if (!r.error) {
-        if (FD.isWeb(u.url)) t.url = u.url;
+      else if (!r.error && !r.pending) {
+        if (FD.isWeb(u.url)) t.url = FD.cleanUrl(u.url);
         if (u.title && !/^about:blank/.test(u.title)) t.title = u.title;
         t.favicon = (u.favicon && /^data:image\//.test(u.favicon)) ? u.favicon : (u.loading ? t.favicon : null);
         const hi = S.state.history.find((x) => x.url === t.url); if (hi && t.title) hi.title = t.title;
@@ -662,16 +744,18 @@
     on('tab:navigated', (u) => {
       const t = FD.tab(u.id); if (!t) return;
       const r = FD.rt(u.id);
-      const hadError = !!r.error; r.error = null;
+      const hadError = !!r.error; r.error = null; r.pending = null;
+      u.url = FD.cleanUrl(u.url);
       if (!FD.isInternal(t.url)) t.url = u.url;
       recordHistory(u.url); recordTrail(u.id, u.url);
+      clearTimeout(S.remarkTimer); S.remarkTimer = setTimeout(() => FD.maybeRemark(u.id), 2200);
       if (hadError) FD.renderPanes();
       FD.touch();
     });
     on('tab:fail', (u) => {
       const t = FD.tab(u.id); if (!t) return;
       const r = FD.rt(u.id);
-      r.error = { code: u.code, desc: u.desc, url: u.url }; r.loading = false;
+      r.error = { code: u.code, desc: u.desc, url: u.url }; r.loading = false; r.pending = null;
       if (FD.isWeb(u.url) && !FD.isInternal(t.url)) t.url = u.url;
       if (!t.title) t.title = FD.host(t.url);
       FD.renderAll();
@@ -686,6 +770,13 @@
       if (pane && pane !== S.focus) { S.focus = pane; FD.renderTabs(); FD.renderToolbar(); FD.updatePaneHeads(); }
     });
     on('tab:found', (u) => { $('find-count').textContent = u.matches ? u.active + ' of ' + u.matches : 'No matches'; });
+    on('tab:fullscreen', (u) => { document.body.classList.toggle('page-fullscreen', !!u.on); scheduleLayout(); });
+    on('tab:target', (u) => {
+      const el = $('status'); const cur = FD.current();
+      if (!cur || u.id !== cur.id) return;
+      el.textContent = u.url || ''; el.classList.toggle('show', !!u.url);
+    });
+    on('tab:slept', (u) => { const r = S.rt[u.id]; if (r) { r.made = false; r.loading = false; r.canBack = false; r.canFwd = false; } });
     on('clip', (c) => FD.addClip(c));
     on('line', (l) => FD.addLine(l));
     on('cmd', (c) => FD.command(c.name, c));
@@ -721,6 +812,7 @@
     if (!url) return;
     const w = FD.ws();
     const have = w.tabs.find((t) => t.url === url || t.url.split('#')[0] === url.split('#')[0]);
-    if (have) FD.selectTab(have.id); else FD.newTab(FD.isWeb(url) ? FD.sourceLink(url, text) : url);
+    if (have) { FD.selectTab(have.id); return have; }
+    return FD.newTab(FD.isWeb(url) ? FD.sourceLink(url, text) : url);
   };
 })();

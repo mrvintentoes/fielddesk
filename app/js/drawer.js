@@ -12,7 +12,7 @@
     const w = FD.ws(); const d = w.drawer;
     const same = d.open && d.panel === panel && (panel !== 'commander' || d.commander === commander);
     if (same) d.open = false;
-    else { d.open = true; d.panel = panel; if (commander) d.commander = commander; }
+    else { d.open = true; d.panel = panel; if (commander) { d.commander = commander; if (w.pins.includes(commander)) w.lead = commander; } }
     w.railCollapsed = false;
     FD.renderRail(); FD.renderDrawer(); FD.renderToolbar(); FD.scheduleLayout(); FD.touch();
   };
@@ -26,7 +26,8 @@
   FD.toggleRail = function () {
     const w = FD.ws();
     w.railCollapsed = !w.railCollapsed;
-    if (w.railCollapsed) w.drawer.open = false;
+    if (w.railCollapsed) { w.drawer.reopen = w.drawer.open; w.drawer.open = false; }
+    else if (w.drawer.reopen) { w.drawer.open = true; w.drawer.reopen = false; }
     FD.renderRail(); FD.renderDrawer(); FD.renderToolbar(); FD.scheduleLayout(); FD.touch();
   };
 
@@ -34,37 +35,41 @@
   FD.pin = function (id) {
     const w = FD.ws();
     if (w.pins.includes(id)) return;
-    if (w.pins.length >= 2) w.pins.shift();
+    if (w.pins.length >= 2) { const out = w.pins.shift(); FD.toast(FD.commander(id).name + ' pinned in place of ' + FD.commander(out).name + ' (two pins at most)'); }
     w.pins.push(id);
+    if (w.pins.length === 1) w.lead = id;
     w.railCollapsed = false;
-    FD.pushPins(); FD.renderRail(); FD.renderDrawer(); FD.touch();
+    FD.ensureCommander(id);
+    FD.pushPins(); FD.renderRail(); FD.renderDrawer(); FD.refreshPages('fielddesk://newtab'); FD.touch();
   };
   FD.unpin = function (id) {
     const w = FD.ws();
     w.pins = w.pins.filter((x) => x !== id);
     if (w.drawer.panel === 'compare' && w.pins.length < 2) w.drawer.panel = w.pins.length ? 'commander' : 'pin';
     if (w.drawer.panel === 'commander' && w.drawer.commander === id) { if (w.pins.length) w.drawer.commander = w.pins[0]; else w.drawer.panel = 'pin'; }
-    FD.pushPins(); FD.renderRail(); FD.renderDrawer(); FD.touch();
+    FD.pushPins(); FD.renderRail(); FD.renderDrawer(); FD.refreshPages('fielddesk://newtab'); FD.touch();
   };
 
   // ------------------------------------------------------------ clips and saved lines
   FD.addClip = function (c) {
-    const text = String(c.text || '').replace(/\s+\n/g, '\n').trim();
+    const full = String(c.text || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    const LIMIT = 20000;
+    const text = full.slice(0, LIMIT);
     if (!text || !S.state.commanders[c.commanderId]) return;
     const w = FD.ws();
-    const clip = { id: FD.uid('c'), text: text.slice(0, 6000), url: c.url || '', title: c.title || FD.host(c.url), ts: Date.now(), category: c.category || null, stance: null, ws: w.id };
+    const clip = { id: FD.uid('c'), text, url: FD.cleanUrl(c.url || ''), title: c.title || FD.host(c.url), ts: Date.now(), category: c.category || null, stance: null, ws: w.id };
     clipsOf(c.commanderId).unshift(clip);
-    if (!w.pins.includes(c.commanderId) && w.pins.length < 2) { w.pins.push(c.commanderId); FD.pushPins(); }
+    if (!w.pins.includes(c.commanderId) && w.pins.length < 2) { w.pins.push(c.commanderId); FD.ensureCommander(c.commanderId); FD.pushPins(); }
     w.railCollapsed = false;
     S.flash = c.commanderId;
     FD.renderRail(); FD.renderDrawer(); FD.touch();
-    FD.toast('Clipped to ' + FD.commander(c.commanderId).name + '’s file' + (clip.category ? ' under ' + catLabel(clip.category).toLowerCase() : ''));
+    FD.toast('Clipped to ' + FD.commander(c.commanderId).name + '’s file' + (clip.category ? ' under ' + catLabel(clip.category).toLowerCase() : '') + (full.length > LIMIT ? ' (cut to the first 20,000 characters)' : ''));
     setTimeout(() => { S.flash = null; }, 1500);
     return clip;
   };
   FD.addLine = function (l) {
     const text = String(l.text || '').trim(); if (!text) return;
-    FD.ws().lines.unshift({ id: FD.uid('l'), text: text.slice(0, 6000), url: l.url || '', title: l.title || FD.host(l.url), ts: Date.now() });
+    FD.ws().lines.unshift({ id: FD.uid('l'), text: text.slice(0, 20000), url: FD.cleanUrl(l.url || ''), title: l.title || FD.host(l.url), ts: Date.now() });
     FD.renderDrawer(); FD.touch();
     FD.toast('Line saved to notes');
   };
@@ -103,7 +108,13 @@
       withClips.forEach((c) => {
         const mine = clipsOf(c.id).filter((k) => k.ws === w.id || w.pins.includes(c.id));
         out.push('### ' + c.name, '');
-        if (!mine.length) { out.push('_No passages clipped yet._', ''); return; }
+        const marked = c.decisions.filter((d) => w.cardStance[d.id]);
+        if (marked.length) {
+          out.push('#### Campaign decisions I marked', '');
+          marked.forEach((d) => out.push('- **' + (w.cardStance[d.id] === 'support' ? 'Supports' : 'Challenges') + ' my view.** ' + mdEsc(d.title) + ' (' + mdEsc(d.when) + '), ' + catLabel(d.category).toLowerCase() + '. ' + mdLink(d.cite, d.url)));
+          out.push('');
+        }
+        if (!mine.length) { if (!marked.length) out.push('_No passages clipped yet._', ''); return; }
         [...FD.CATEGORIES, { id: null, label: 'Unsorted' }].forEach((cat) => {
           const group = mine.filter((k) => (k.category || null) === cat.id);
           if (!group.length) return;
@@ -123,8 +134,10 @@
           '- **My move:** ' + (opt ? opt.label : r.choice),
           '- **Why:** ' + (r.why || '(not recorded)'),
           '- **What would change my mind:** ' + (r.changeMind || '(not recorded)'),
-          '- **Afterwards:** ' + (r.reflection || '(not recorded)'), '');
+          '- **Afterwards:** ' + (r.reflection || '(not recorded)'),
+          '- **How that move was judged (a scenario judgement, not a sourced fact):** ' + (FD.ULM.outcome.verdicts[r.choice] ? FD.ULM.outcome.verdicts[r.choice].headline : ''), '');
       });
+      out.push('**What happened:** ' + FD.ULM.outcome.summary, '');
       out.push('Sources for the scenario:', '');
       FD.ULM.sources.forEach((s) => out.push('- ' + (s.url ? mdLink(s.title, s.url) : mdEsc(s.title)) + (s.author ? ', ' + s.author : '') + (s.year ? ' (' + s.year + ')' : '')));
       out.push('');
@@ -142,6 +155,7 @@
   };
   FD.exportMarkdown = async function (w) {
     w = w || FD.ws();
+    await FD.ensureCommanders(FD.COMMANDERS.filter((c) => w.pins.includes(c.id) || clipsOf(c.id).length).map((c) => c.id));
     const file = await window.fd.invoke('export:markdown', { name: w.name, content: FD.buildMarkdown(w) });
     if (file) FD.toast('Exported to ' + file);
     return file;
@@ -151,6 +165,7 @@
   const ICONS = { notes: '✎', workspaces: '▤', trail: '⑂', bookmarks: '★' };
   FD.renderRail = function () {
     const w = FD.ws(); const d = w.drawer;
+    FD.applyTheme();
     const rail = FD.clear($('rail'));
     rail.hidden = !!w.railCollapsed;
     if (w.railCollapsed) return;
@@ -158,8 +173,9 @@
     w.pins.forEach((id) => {
       const c = FD.commander(id);
       const on = d.open && ((d.panel === 'commander' && d.commander === id) || d.panel === 'compare');
+      const lead = twoUp && FD.lead() && FD.lead().id === id;
       rail.appendChild(h('button', {
-        class: 'pin' + (on ? ' on' : '') + (S.flash === id ? ' flash' : ''), title: c.full + ': open file', 'data-commander': id,
+        class: 'pin' + (on ? ' on' : '') + (lead ? ' lead' : '') + (S.flash === id ? ' flash' : ''), title: c.full + ': open file' + (lead ? ' (sets the look of the app)' : ''), 'data-commander': id,
         onclick: () => {
           if (twoUp && !(d.open && d.panel === 'commander')) FD.openPanel('compare');
           else FD.openPanel('commander', id);
@@ -216,7 +232,12 @@
         h('button', { class: 'x', title: 'Remove this clip', onclick: () => { list.splice(list.indexOf(k), 1); FD.renderRail(); FD.renderDrawer(); FD.touch(); } }, '×')));
   }
 
+  // In the Ulm workspace, Napoleon's own 1805 cards would give the game away before you commit.
+  const SEALED = new Set(['napoleon-intelligence', 'napoleon-tempo']);
   function decisionCard(w, d, compact) {
+    if (w.kind === 'ulm' && !S.state.ulm.committed && SEALED.has(d.id)) {
+      return h('article', { class: 'decision sealed' }, 'Sealed until you commit to a move at Ulm. This card describes the 1805 campaign from the French side.');
+    }
     return h('article', { class: 'decision' + (w.cardStance[d.id] ? ' ' + w.cardStance[d.id] : '') },
       h('div', { class: 'decision-head' },
         h('span', { class: 'decision-title' }, d.title), h('span', { class: 'decision-when' }, d.when)),
@@ -232,7 +253,7 @@
     const d = w.drawer;
     const btn = (label, on, fn) => h('button', { class: 'seg' + (on ? ' on' : ''), onclick: fn }, label);
     return h('div', { class: 'segmented' },
-      w.pins.map((id) => btn(FD.commander(id).name, d.panel === 'commander' && d.commander === id, () => { d.panel = 'commander'; d.commander = id; FD.renderRail(); FD.renderDrawer(); FD.touch(); })),
+      w.pins.map((id) => btn(FD.commander(id).name, d.panel === 'commander' && d.commander === id, () => { d.panel = 'commander'; d.commander = id; w.lead = id; FD.renderRail(); FD.renderDrawer(); FD.touch(); })),
       btn('Compare', d.panel === 'compare', () => { d.panel = 'compare'; FD.renderRail(); FD.renderDrawer(); FD.touch(); }));
   }
 
@@ -247,20 +268,27 @@
   function panelCommander(w) {
     const c = FD.commander(w.drawer.commander) || FD.commander(w.pins[0]);
     if (!c) return panelPin(w);
+    if (!c.loaded) { FD.ensureCommander(c.id); return [head(c.name, c.full + ' · ' + c.dates), h('p', { class: 'empty' }, 'Opening the file…')]; }
     const clips = clipsOf(c.id);
+    const QUOTES = c.quotes.length ? h('section', null,
+      h('h3', null, 'In his own words', h('span', { class: 'count' }, String(c.quotes.length))),
+      c.quotes.map((q) => FD.quoteCard(q)),
+      h('p', { class: 'muted small' }, 'Each line is marked attested, attributed or disputed. Check the source before you repeat it.')) : null;
+    const DECISIONS = h('section', null,
+        h('h3', null, 'Decisions from the campaigns'),
+        c.decisions.map((d) => h('div', null, h('p', { class: 'cat-label' }, catLabel(d.category)), decisionCard(w, d, false))));
+    const PASSAGES = h('section', null,
+        h('h3', null, 'Saved passages', clips.length ? h('span', { class: 'count' }, String(clips.length)) : null),
+        clips.length ? clips.map((k) => clipCard(c.id, k)) : h('p', { class: 'empty' }, 'Nothing in ' + c.name + '’s file yet. Select a passage on any page, right-click, and choose “Clip to ' + c.name + '’s file”.'));
     return [
       h('header', { class: 'drawer-head file-head' },
         h('span', { class: 'file-portrait', html: FD.portrait(c.id) }),
-        h('div', null, h('h2', null, c.name), h('p', { class: 'muted small' }, c.full + ' · ' + c.dates), h('p', { class: 'epithet' }, c.epithet)),
+        h('div', null, h('h2', null, c.name), h('p', { class: 'muted small' }, c.full + ' · ' + c.dates), h('p', { class: 'epithet' }, c.epithet), c.theme ? h('p', { class: 'muted small' }, c.theme.label + ' theme') : null),
         h('button', { class: 'x big', title: 'Close the drawer', onclick: FD.toggleDrawer }, '×')),
       segmented(w),
       questionField(w),
-      h('section', null,
-        h('h3', null, 'Decisions from the campaigns'),
-        c.decisions.map((d) => h('div', null, h('p', { class: 'cat-label' }, catLabel(d.category)), decisionCard(w, d, false)))),
-      h('section', null,
-        h('h3', null, 'Saved passages', clips.length ? h('span', { class: 'count' }, String(clips.length)) : null),
-        clips.length ? clips.map((k) => clipCard(c.id, k)) : h('p', { class: 'empty' }, 'Nothing in ' + c.name + '’s file yet. Select a passage on any page, right-click, and choose “Clip to ' + c.name + '’s file”.')),
+      ...(clips.length ? [PASSAGES, DECISIONS] : [DECISIONS, PASSAGES]),
+      QUOTES,
       h('p', { class: 'drawer-foot' },
         w.pins.includes(c.id) ? h('button', { class: 'btn quiet', onclick: () => FD.unpin(c.id) }, 'Unpin ' + c.name) : h('button', { class: 'btn', onclick: () => FD.pin(c.id) }, 'Pin ' + c.name),
         w.pins.length < 2 ? h('button', { class: 'btn quiet', onclick: () => FD.openPanel('pin') }, 'Pin a second commander to compare') : null)
@@ -270,25 +298,26 @@
   function panelCompare(w) {
     if (w.pins.length < 2) return panelPin(w);
     const cs = w.pins.map(FD.commander);
+    FD.ensureCommanders(w.pins);
     let support = 0, challenge = 0;
     cs.forEach((c) => {
       clipsOf(c.id).forEach((k) => { if (k.stance === 'support') support++; if (k.stance === 'challenge') challenge++; });
       c.decisions.forEach((d) => { if (w.cardStance[d.id] === 'support') support++; if (w.cardStance[d.id] === 'challenge') challenge++; });
     });
-    const column = (c) => h('div', { class: 'col', 'data-col': c.id },
-      h('div', { class: 'col-head' },
-        h('span', { class: 'col-portrait', html: FD.portrait(c.id) }),
-        h('div', null, h('strong', null, c.name), h('div', { class: 'muted small' }, c.dates))),
-      [...FD.CATEGORIES, { id: null, label: 'Unsorted clips' }].map((cat) => {
-        const clips = clipsOf(c.id).filter((k) => (k.category || null) === cat.id);
-        const card = cat.id ? c.decisions.find((d) => d.category === cat.id) : null;
-        if (!cat.id && !clips.length) return null;
-        return h('section', { class: 'cat', 'data-cat': cat.id || 'unsorted' },
-          h('h4', null, cat.label, clips.length ? h('span', { class: 'count' }, String(clips.length)) : null),
-          clips.map((k) => clipCard(c.id, k)),
-          card ? decisionCard(w, card, true) : null,
-          cat.id && !clips.length ? h('p', { class: 'empty small' }, 'No clips yet. Right-click a passage and choose “Clip to ' + c.name + ' under ' + cat.label + '”.') : null);
-      }));
+    const colHead = (c) => h('div', { class: 'col-head', 'data-col': c.id },
+      h('span', { class: 'col-portrait', html: FD.portrait(c.id) }),
+      h('div', null, h('strong', null, c.name), h('div', { class: 'muted small' }, c.dates)));
+    const cell = (c, cat) => {
+      const clips = clipsOf(c.id).filter((k) => (k.category || null) === cat.id);
+      const card = cat.id ? c.decisions.find((d) => d.category === cat.id) : null;
+      return h('section', { class: 'cat', 'data-col': c.id, 'data-cat': cat.id || 'unsorted' },
+        h('h4', null, cat.label, clips.length ? h('span', { class: 'count' }, String(clips.length)) : null),
+        clips.map((k) => clipCard(c.id, k)),
+        card ? decisionCard(w, card, true) : null,
+        !clips.length ? h('p', { class: 'empty small' }, cat.id ? 'No clips yet. Right-click a passage and choose “Clip to ' + c.name + ' under ' + cat.label + '”.' : 'Nothing unsorted.') : null);
+    };
+    const anyUnsorted = cs.some((c) => clipsOf(c.id).some((k) => !k.category));
+    const rows = [...FD.CATEGORIES, ...(anyUnsorted ? [{ id: null, label: 'Unsorted clips' }] : [])];
     return [
       head(cs[0].name + ' and ' + cs[1].name, 'Evidence side by side'),
       segmented(w),
@@ -298,24 +327,44 @@
         h('textarea', { class: 'view', rows: '2', placeholder: 'State your view in a sentence, then mark each piece of evidence as supporting or challenging it.', value: w.view, oninput: (e) => { w.view = e.target.value; FD.touch(); } })),
       h('p', { class: 'tally' },
         h('span', { class: 'tally-support' }, support + ' supporting'), ' · ', h('span', { class: 'tally-challenge' }, challenge + ' challenging')),
-      h('div', { class: 'compare' }, column(cs[0]), column(cs[1]))
+      h('div', { class: 'compare' }, colHead(cs[0]), colHead(cs[1]), rows.map((cat) => [cell(cs[0], cat), cell(cs[1], cat)]))
     ];
   }
 
   function panelPin(w) {
+    FD.ensureCommanders(FD.COMMANDERS.map((c) => c.id)); // portraits arrive as the files load
+    const st = S.state.settings;
+    const q = (S.pinFilter || '').toLowerCase();
+    const match = (c) => !q || (c.name + ' ' + c.full + ' ' + c.era + ' ' + (c.theme ? c.theme.label : '')).toLowerCase().includes(q);
+    const eras = []; FD.COMMANDERS.forEach((c) => { if (!eras.includes(c.era)) eras.push(c.era); });
+    const row = (c) => {
+      const on = w.pins.includes(c.id);
+      return h('div', { class: 'pin-row' + (on ? ' on' : '') },
+        h('span', { class: 'pin-row-portrait', html: FD.portrait(c.id) }),
+        h('div', { class: 'pin-row-text' }, h('strong', null, c.name), h('span', { class: 'muted small' }, ' ' + c.dates),
+          h('div', { class: 'small' }, c.epithet),
+          h('div', { class: 'muted small' }, (c.theme ? c.theme.label + ' theme' : '') + (clipsOf(c.id).length ? ' · ' + clipsOf(c.id).length + ' on file' : ''))),
+        h('div', { class: 'pin-row-actions' },
+          h('button', { class: 'btn small' + (on ? ' quiet' : ' primary'), 'data-pin': c.id, onclick: () => (on ? FD.unpin(c.id) : FD.pin(c.id)) }, on ? 'Unpin' : 'Pin'),
+          h('button', { class: 'btn quiet small', onclick: () => { w.drawer.panel = 'commander'; w.drawer.commander = c.id; FD.renderRail(); FD.renderDrawer(); } }, 'File')));
+    };
+    const list = h('div', { class: 'pin-list' }, eras.map((era) => {
+      const cs = FD.COMMANDERS.filter((c) => c.era === era && match(c));
+      return cs.length ? [h('h3', null, era), cs.map(row)] : null;
+    }));
     return [
-      head('Pin a commander', 'Up to two. A pin follows you across tabs and comes back after a restart.'),
-      h('div', { class: 'pin-list' }, FD.COMMANDERS.map((c) => {
-        const on = w.pins.includes(c.id);
-        return h('div', { class: 'pin-row' + (on ? ' on' : '') },
-          h('span', { class: 'pin-row-portrait', html: FD.portrait(c.id) }),
-          h('div', { class: 'pin-row-text' }, h('strong', null, c.name), h('div', { class: 'muted small' }, c.full + ' · ' + c.dates), h('div', { class: 'small' }, c.epithet),
-            h('div', { class: 'muted small' }, clipsOf(c.id).length + ' passage' + (clipsOf(c.id).length === 1 ? '' : 's') + ' on file')),
-          h('div', { class: 'pin-row-actions' },
-            h('button', { class: 'btn' + (on ? ' quiet' : ' primary'), 'data-pin': c.id, onclick: () => (on ? FD.unpin(c.id) : FD.pin(c.id)) }, on ? 'Unpin' : 'Pin'),
-            h('button', { class: 'btn quiet', onclick: () => { w.drawer.panel = 'commander'; w.drawer.commander = c.id; FD.renderRail(); FD.renderDrawer(); } }, 'Open file')));
-      })),
-      w.pins.length === 2 ? h('p', null, h('button', { class: 'btn primary', onclick: () => FD.openPanel('compare') }, 'Compare ' + w.pins.map((id) => FD.commander(id).name).join(' and '))) : h('p', { class: 'muted small' }, 'Pin two to compare them in this drawer.')
+      head('Pin a commander', 'Up to two. Pins follow you across tabs and come back after a restart.'),
+      w.pins.length === 2 ? h('p', null, h('button', { class: 'btn primary', onclick: () => FD.openPanel('compare') }, 'Compare ' + w.pins.map((id) => FD.commander(id).name).join(' and '))) : null,
+      h('input', { type: 'text', class: 'text', id: 'pin-filter', placeholder: 'Find a commander, an era or a look', value: S.pinFilter || '',
+        oninput: (e) => { S.pinFilter = e.target.value; const fresh = panelPin(w).find((n) => n && n.classList && n.classList.contains('pin-list')); const old = document.querySelector('#drawer .pin-list'); if (old && fresh) old.replaceWith(fresh); } }),
+      list,
+      h('section', null,
+        h('h3', null, 'What a pin changes'),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: st.themes !== false, onchange: (e) => { st.themes = e.target.checked; FD.applyTheme(); FD.save(); } }),
+          ' The pinned commander sets the look of the app'),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: st.remarks !== 'off', onchange: (e) => { st.remarks = e.target.checked ? 'sometimes' : 'off'; FD.save(); } }),
+          ' He sometimes remarks on the page you open'),
+        h('p', { class: 'muted small' }, 'With two pinned, the look follows whichever file you opened last. Remarks are in-character lines that ship with the app, chosen on this computer from the page’s address and title only. They are not quotations, and nothing about the page is sent anywhere.'))
     ];
   }
 
@@ -344,7 +393,7 @@
     const s = S.state;
     let nameEl, qEl;
     const create = (fromTabs) => {
-      const name = nameEl.value.trim(); if (!name) { nameEl.focus(); return; }
+      const name = nameEl.value.trim(); if (!name) { nameEl.focus(); FD.toast('Give the workspace a name first'); return; }
       const nw = FD.newWorkspace({ name, question: qEl.value.trim() });
       if (fromTabs) {
         // Move the tabs you have open into the new workspace, split view and pins included.
@@ -353,7 +402,9 @@
         nw.tabs = keep; nw.active = keep[Math.max(0, idx(w.active))].id;
         nw.split = { on: w.split.on, right: w.split.on ? keep[Math.max(0, idx(w.split.right))].id : null, ratio: w.split.ratio };
         nw.pins = w.pins.slice();
-        if (w.kind === 'loose') { nw.notes = w.notes; nw.lines = w.lines; w.notes = ''; w.lines = []; w.tabs.forEach((t) => { if (FD.rt(t.id).made) window.fd.invoke('tab:destroy', { id: t.id }); }); w.tabs = []; w.split.on = false; w.pins = []; }
+        nw.notes = w.notes; nw.lines = w.lines.map((l) => Object.assign({}, l)); nw.view = w.view;
+        if (!nw.question) nw.question = w.kind === 'loose' ? '' : w.question;
+        if (w.kind === 'loose') { w.notes = ''; w.lines = []; w.tabs.forEach((t) => { if (FD.rt(t.id).made) window.fd.invoke('tab:destroy', { id: t.id }); }); w.tabs = []; w.split.on = false; w.pins = []; }
       }
       nw.drawer = { open: true, panel: 'workspaces', commander: nw.pins[0] || null };
       s.workspaces[nw.id] = nw; s.order.unshift(nw.id);
@@ -369,7 +420,7 @@
           notes: 'Original on the left, translation on the right. Replace either page with your own text.\n\nMy rendering:\n'
         });
       } else {
-        nw = FD.newWorkspace({ name: 'Speech practice', kind: 'speech', question: w.question || 'Make the case in sixty seconds.', tabs: [{ url: 'fielddesk://speech', title: 'Sixty seconds' }], panel: 'notes' });
+        nw = FD.newWorkspace({ name: 'Speech practice', kind: 'speech', question: '', tabs: [{ url: 'fielddesk://speech', title: 'Sixty seconds' }], panel: 'notes' });
       }
       s.workspaces[nw.id] = nw; s.order.unshift(nw.id);
       FD.openWorkspace(nw.id);
@@ -410,9 +461,10 @@
     function renameRow(x) {
       const row = document.querySelector('.ws-row[data-ws="' + x.id + '"] .ws-open'); if (!row) return;
       const input = h('input', { type: 'text', class: 'text', value: x.name });
-      const done = () => { const v = input.value.trim(); if (v) x.name = v; FD.renderDrawer(); FD.renderToolbar(); FD.save(); };
-      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') done(); if (e.key === 'Escape') FD.renderDrawer(); });
-      input.addEventListener('blur', done);
+      let finished = false;
+      const done = (keep) => { if (finished) return; finished = true; const v = input.value.trim(); if (keep && v) x.name = v; FD.renderDrawer(true); FD.renderToolbar(); FD.save(); };
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); done(true); } if (e.key === 'Escape') { e.preventDefault(); done(false); } });
+      input.addEventListener('blur', () => done(true));
       row.replaceWith(input); input.focus(); input.select();
     }
   }
@@ -421,11 +473,12 @@
     const tr = w.trail;
     const openUrls = new Set(w.tabs.map((t) => t.url));
     const curIds = new Set(Object.values(tr.cur));
+    const hereId = tr.cur[(FD.current() || {}).id];
     const kids = (p) => tr.nodes.filter((n) => n.parent === p);
     const row = (n, depth) => {
       const children = kids(n.id);
-      const state = curIds.has(n.id) ? 'here' : openUrls.has(n.url) ? 'open' : children.length ? 'passed' : 'left';
-      return [h('div', { class: 'trail-row ' + state, style: { paddingLeft: (8 + depth * 16) + 'px' }, title: n.url, onclick: () => FD.openSource(n.url) },
+      const state = n.id === hereId ? 'here' : (curIds.has(n.id) || openUrls.has(n.url)) ? 'open' : children.length ? 'passed' : 'left';
+      return [h('div', { class: 'trail-row ' + state, style: { paddingLeft: (8 + depth * 16) + 'px' }, title: n.url, onclick: () => { const t = FD.openSource(n.url); if (t) { w.trail.cur[t.id] = n.id; FD.renderDrawer(); FD.touch(); } } },
         h('span', { class: 'trail-dot' }),
         h('span', { class: 'trail-title' }, FD.trunc(n.title || FD.host(n.url), 60)),
         h('span', { class: 'trail-host' }, FD.host(n.url)),
@@ -469,7 +522,7 @@
 
   const PANELS = { commander: panelCommander, compare: panelCompare, pin: panelPin, notes: panelNotes, workspaces: panelWorkspaces, trail: panelTrail, bookmarks: panelBookmarks };
 
-  FD.renderDrawer = function () {
+  FD.renderDrawer = function (force) {
     const w = FD.ws(); const d = w.drawer;
     const el = $('drawer');
     const open = d.open && !w.railCollapsed;
@@ -477,7 +530,7 @@
     if (!open) { FD.clear(el); return; }
     // Do not rebuild under someone who is typing in the drawer.
     const active = document.activeElement;
-    if (active && el.contains(active) && /^(TEXTAREA|INPUT)$/.test(active.tagName) && el.dataset.panel === d.panel + ':' + (d.commander || '')) return;
+    if (!force && document.hasFocus() && active && el.contains(active) && /^(TEXTAREA|INPUT)$/.test(active.tagName) && el.dataset.panel === d.panel + ':' + (d.commander || '')) return;
     const scroll = el.dataset.panel === d.panel + ':' + (d.commander || '') ? el.scrollTop : 0;
     el.dataset.panel = d.panel + ':' + (d.commander || '');
     el.className = 'panel-' + d.panel;

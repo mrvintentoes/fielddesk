@@ -25,7 +25,7 @@ FD.seedState = function () {
     id: 'fog', name: 'Fog of War', kind: 'ulm',
     question: 'Ulm, October 1805: what should Mack do once the French are behind him?',
     tabs: [{ url: 'fielddesk://ulm', title: 'Fog of War: Ulm 1805' }, { url: 'fielddesk://sources/ulm', title: 'Reading room: Ulm 1805' }],
-    split: { rightIndex: 1, ratio: 0.58 }, pins: ['napoleon']
+    split: { rightIndex: 1, ratio: 0.58 }, pins: ['turenne']
   });
   const avc = FD.newWorkspace({
     id: 'avc', name: 'Alexander vs. Caesar',
@@ -42,7 +42,7 @@ FD.seedState = function () {
   FD.COMMANDERS.forEach((c) => { commanders[c.id] = { clips: [] }; });
   return {
     v: FD.STATE_VERSION,
-    settings: { engine: 'ddg' },
+    settings: { engine: 'ddg', themes: true, remarks: 'sometimes' },
     bookmarks: [],
     pinnedSites: [
       { title: 'Wikipedia', url: 'https://en.wikipedia.org/' },

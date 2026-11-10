@@ -10,7 +10,7 @@ const SCRATCH = process.env.FD_SCRATCH || '/tmp/claude-0/-home-claude/afeb33f8-c
 const SHOTS = path.join(SCRATCH, 'shots');
 fs.mkdirSync(SHOTS, { recursive: true });
 
-const ICON = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAFklEQVR42mP8z8Dwn4ECwDhqwKgBwwYAAEYIAhDsl4bCAAAAAElFTkSuQmCC', 'base64');
+const ICON = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURcA5K////28zc6EAAAABYktHRAH/Ai3eAAAAB3RJTUUH6gsKBhUDyVeILQAAAAxJREFUCNdjYCANAAAAMAABx6qFjgAAAABJRU5ErkJggg==', 'base64');
 const page = (title, body, head) => `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>${head || ''}</head><body style="font:16px sans-serif"><h1 id="h">${title}</h1>${body}</body></html>`;
 
 function startServer() {
@@ -85,7 +85,8 @@ async function aligned(app, ui) {
 }
 // Invoke an application-menu item by accelerator, as the OS would on that key press.
 const accel = (app, a) => app.evaluate(({ Menu }, a) => {
-  const walk = (m) => { for (const i of m.items) { if (i.accelerator && i.accelerator.toLowerCase() === a.toLowerCase()) return i; if (i.submenu) { const r = walk(i.submenu); if (r) return r; } } return null; };
+  const norm = (x) => x.toLowerCase().replace(/commandorcontrol|cmdorctrl|control/g, 'ctrl');
+  const walk = (m) => { for (const i of m.items) { if (i.accelerator && norm(i.accelerator) === norm(a)) return i; if (i.submenu) { const r = walk(i.submenu); if (r) return r; } } return null; };
   const it = walk(Menu.getApplicationMenu());
   if (!it) return false;
   it.click(); return true;

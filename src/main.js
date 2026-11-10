@@ -110,13 +110,13 @@ function createTab(id, url) {
   const view = new WebContentsView({
     webPreferences: {
       partition: WEB_PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false,
-      webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, safeDialogs: true
+      backgroundThrottling: true, webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, safeDialogs: true
     }
   });
   view.setBackgroundColor('#ffffff');
   view.setVisible(false);
   win.contentView.addChildView(view);
-  const t = { id, view, favicon: null };
+  const t = { id, view, favicon: null, lastShown: Date.now() };
   tabs.set(id, t);
   const wc = view.webContents;
 
@@ -137,14 +137,25 @@ function createTab(id, url) {
   wc.on('did-stop-loading', () => tabUpdate(id));
   wc.on('page-title-updated', () => tabUpdate(id));
   wc.on('page-favicon-updated', (_e, icons) => { loadFavicon(t, icons); });
-  wc.on('did-navigate', (_e, navUrl) => { t.favicon = null; t.faviconUrl = null; send('tab:navigated', { id, url: navUrl }); tabUpdate(id); });
-  wc.on('did-navigate-in-page', (_e, navUrl, isMainFrame) => { if (isMainFrame) tabUpdate(id); });
+  const bare = (u) => String(u || '').split('#')[0];
+  wc.on('did-navigate', (_e, navUrl) => { t.favicon = null; t.faviconUrl = null; t.lastNav = bare(navUrl); send('tab:navigated', { id, url: navUrl }); tabUpdate(id); });
+  // Single-page apps change the address without a full load; that still counts as visiting a page.
+  wc.on('did-navigate-in-page', (_e, navUrl, isMainFrame) => {
+    if (!isMainFrame) return;
+    if (bare(navUrl) !== t.lastNav) { t.lastNav = bare(navUrl); send('tab:navigated', { id, url: navUrl }); }
+    tabUpdate(id);
+  });
   wc.on('did-fail-load', (_e, code, desc, failedUrl, isMainFrame) => {
     if (!isMainFrame || code === -3) return; // -3 = aborted (e.g. a newer navigation replaced it)
     send('tab:fail', { id, code, desc, url: failedUrl });
   });
   wc.on('render-process-gone', (_e, d) => send('tab:fail', { id, code: -1, desc: 'The page crashed (' + d.reason + ').', url: wc.getURL() }));
   wc.on('focus', () => send('tab:focused', { id }));
+  wc.on('update-target-url', (_e, target) => send('tab:target', { id, url: target || '' }));
+  wc.on('enter-html-full-screen', () => send('tab:fullscreen', { id, on: true }));
+  wc.on('leave-html-full-screen', () => send('tab:fullscreen', { id, on: false }));
+  // Escape stops a page that is still loading; the page still receives the key.
+  wc.on('before-input-event', (_e, input) => { if (input.type === 'keyDown' && input.key === 'Escape' && wc.isLoading()) wc.stop(); });
   wc.on('found-in-page', (_e, r) => send('tab:found', { id, active: r.activeMatchOrdinal, matches: r.matches }));
   wc.on('context-menu', (_e, params) => popupPageMenu(buildPageMenu({
     tabId: id, url: wc.getURL(), title: wc.getTitle(), selection: params.selectionText,
@@ -163,6 +174,24 @@ function destroyTab(id) {
   try { t.view.webContents.close(); } catch (_) {}
 }
 
+// Keep memory in hand: beyond MAX_LIVE loaded pages, the ones not looked at for longest are put
+// to sleep (their view is released; the tab stays and reloads when selected). Tabs playing
+// sound or with developer tools open are left alone.
+const MAX_LIVE = 10;
+function sleepIdleTabs() {
+  if (tabs.size <= MAX_LIVE) return;
+  const shown = new Set(layout.panes.map((p) => p.id));
+  const idle = [...tabs.values()].filter((t) => {
+    const wc = t.view.webContents;
+    return !shown.has(t.id) && !wc.isCurrentlyAudible() && !wc.isDevToolsOpened();
+  }).sort((a, b) => (a.lastShown || 0) - (b.lastShown || 0));
+  while (tabs.size > MAX_LIVE && idle.length) {
+    const t = idle.shift();
+    destroyTab(t.id);
+    send('tab:slept', { id: t.id });
+  }
+}
+
 function applyLayout() {
   const shown = new Map(layout.panes.map((p) => [p.id, p]));
   for (const t of tabs.values()) {
@@ -170,6 +199,7 @@ function applyLayout() {
     if (p && !frozen) {
       t.view.setBounds({ x: Math.round(p.x), y: Math.round(p.y), width: Math.max(0, Math.round(p.w)), height: Math.max(0, Math.round(p.h)) });
       t.view.setVisible(true);
+      t.lastShown = Date.now();
     } else {
       t.view.setVisible(false);
     }
@@ -272,7 +302,7 @@ function buildAppMenu() {
         isMac ? { role: 'close', accelerator: 'CmdOrCtrl+Shift+W' } : { role: 'quit', accelerator: 'Ctrl+Q' }
       ]
     },
-    { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { type: 'separator' }, item('Find in Page', 'CmdOrCtrl+F', 'find')] },
+    { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { type: 'separator' }, item('Find in Page', 'CmdOrCtrl+F', 'find'), item('Find Next', 'CmdOrCtrl+G', 'find-next'), item('Find Previous', 'CmdOrCtrl+Shift+G', 'find-prev'), ...pcOnly(item('Find Next (F3)', 'F3', 'find-next'))] },
     {
       label: 'View',
       submenu: [
@@ -282,6 +312,7 @@ function buildAppMenu() {
         { type: 'separator' },
         item('Zoom In', 'CmdOrCtrl+=', 'zoom-in'),
         alias('Zoom In (+)', 'CmdOrCtrl+Plus', 'zoom-in'),
+        ...pcOnly(item('Zoom In (keypad)', 'Ctrl+numadd', 'zoom-in'), item('Zoom Out (keypad)', 'Ctrl+numsub', 'zoom-out')),
         item('Zoom Out', 'CmdOrCtrl+-', 'zoom-out'),
         item('Actual Size', 'CmdOrCtrl+0', 'zoom-reset'),
         { type: 'separator' },
@@ -370,7 +401,7 @@ function registerIpc() {
     } catch (_) { return ''; }
   });
 
-  handle('layout:set', (next) => { layout = { panes: Array.isArray(next.panes) ? next.panes : [] }; applyLayout(); return true; });
+  handle('layout:set', (next) => { layout = { panes: Array.isArray(next.panes) ? next.panes : [] }; applyLayout(); sleepIdleTabs(); return true; });
   // Freeze: hand the UI a still of each visible page and hide the live views, so app
   // surfaces (address suggestions, the divider drag) can draw over the page area.
   handle('view:freeze', async () => {

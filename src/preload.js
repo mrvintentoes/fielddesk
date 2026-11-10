@@ -10,7 +10,7 @@ const INVOKE = new Set([
 ]);
 const EVENTS = new Set([
   'tab:update', 'tab:open', 'tab:navigated', 'tab:fail', 'tab:focused', 'tab:found',
-  'clip', 'line', 'cmd'
+  'tab:fullscreen', 'tab:target', 'tab:slept', 'clip', 'line', 'cmd'
 ]);
 
 contextBridge.exposeInMainWorld('fd', {

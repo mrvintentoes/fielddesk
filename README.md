@@ -22,9 +22,10 @@ and menu bar say "Electron" because the app is run from source; quit with `Cmd+Q
 1. The app opens on **Fog of War**: Ulm, October 1805, with the map and Mack's decision on the left
    and the reading room on the right. Step through the three reports, pick a move, write what would
    change your mind, press **Commit and reveal**.
-2. Click the **Napoleon** portrait on the right edge. That is a pinned commander: his file, a few
-   sourced decisions, and whatever you clip to him.
-3. Open any page, select a sentence, right-click, **Clip to Napoleon's file**.
+2. Click the **Turenne** portrait on the right edge. That is a pinned commander: his file, a few
+   sourced decisions, and whatever you clip to him. (Napoleon is not pinned here on purpose: his
+   1805 cards would spoil the decision, and stay sealed in this workspace until you commit.)
+3. Open any page, select a sentence, right-click, **Clip to Turenne's file**.
 4. Click **Desks** on the rail and open **Alexander vs. Caesar** to see two commanders compared
    under the question "Where did Caesar have an operational edge?".
 5. Press `Ctrl+T` (`Cmd+T` on a Mac) for a new tab. The **Resume** button there takes you back to

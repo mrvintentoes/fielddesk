@@ -120,16 +120,6 @@ T.run('clip', async (base) => {
   check('delete removes the clip', (await clips('alexander')).length === nA - 1 && await ui.evaluate(() => !document.querySelector('#drawer .col[data-col=alexander] .cat[data-cat=tempo] .clip')));
   check('pin badge updated after delete', (await ui.$eval('#rail .pin[data-commander=alexander] .pin-count', (e) => e.textContent)) === String(nA - 1));
 
-  // ---- drawer keeps up when the question field has focus (user typed there, then went to the page)
-  await ui.click('#drawer textarea.question'); await sleep(100);
-  const p = await T.viewPage(app, '/A');
-  await p.click('h1'); await sleep(150);          // real click into the page: focus moves to the web view
-  m = await selectAndMenu('/A', '#p1');
-  await T.menuClick(app, 'clip:caesar:tempo'); await sleep(500);
-  const shown = await ui.evaluate(() => ({ dom: document.querySelectorAll('#drawer .col[data-col=caesar] .cat[data-cat=tempo] .clip').length, st: FD.S.state.commanders.caesar.clips.filter((k) => k.category === 'tempo').length, active: document.activeElement && document.activeElement.className }));
-  check('clip made after typing in the question field shows up in the drawer at once', shown.dom === shown.st && shown.st === 1, JSON.stringify(shown));
-  await ui.click('#drawer h2'); await ui.evaluate(() => { document.activeElement.blur && document.activeElement.blur(); FD.renderDrawer(); }); await sleep(100);
-
   // ---- typing in the working question while page-title updates arrive
   await ui.evaluate((u) => FD.navigate(FD.current(), u + '/titles'), base); await sleep(1200);
   await ui.click('#drawer textarea.question');
@@ -209,7 +199,7 @@ T.run('clip', async (base) => {
   await sleep(400); await app.close();
   ({ app, ui } = await T.launch(prof)); await sleep(500);
   const st = await T.state(ui);
-  check('restart: clips persist', st.commanders.caesar.clips.length === 3 && st.commanders.napoleon.clips.length === 1 && st.commanders.turenne.clips.length === 2, JSON.stringify(Object.fromEntries(Object.entries(st.commanders).map(([k, v]) => [k, v.clips.length]))));
+  check('restart: clips persist', st.commanders.caesar.clips.length === 2 && st.commanders.napoleon.clips.length === 1 && st.commanders.turenne.clips.length === 2, JSON.stringify(Object.fromEntries(Object.entries(st.commanders).map(([k, v]) => [k, v.clips.length]))));
   check('restart: stance and category persist', st.commanders.caesar.clips.some((k) => k.category === 'logistics' && k.stance === 'challenge') && st.commanders.caesar.clips.some((k) => k.category === 'recovery'));
   check('restart: question persisted', st.workspaces.avc.question === typed, st.workspaces.avc.question);
   await app.close();

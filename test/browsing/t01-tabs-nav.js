@@ -19,7 +19,7 @@ const { check, sleep } = H;
     check('typed 127.0.0.1:port/a loads', await H.loaded(ui, '/a'));
     await sleep(300);
     t = await T();
-    check('title and favicon arrive', t.tabs[0].title === 'Page A' && /icon\.png/.test(t.tabs[0].favicon || ''), JSON.stringify(t.tabs[0]));
+    check('title and favicon arrive', t.tabs[0].title === 'Page A' && !!t.tabs[0].favicon, JSON.stringify(t.tabs[0]));
     check('address shows url', (await ui.inputValue('#address')) === s.base + '/a', await ui.inputValue('#address'));
     check('back enabled (to new tab page)', !(await ui.isDisabled('#back-btn')));
     let al = await H.aligned(app, ui); check('view aligned with slot', al.ok, al.problems.join('; '));

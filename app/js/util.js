@@ -54,11 +54,14 @@ window.FD = window.FD || {};
     const s = String(input || '').trim();
     if (!s) return null;
     if (FD.isInternal(s)) return s.toLowerCase();
-    if (/^https?:\/\//i.test(s)) return s;
+    if (/^https?:\/\//i.test(s)) return /\s/.test(s) ? encodeURI(s) : s;
     if (/^[a-z][a-z0-9+.-]*:/i.test(s) && !/^localhost(:|$)/i.test(s) && !/^[\w.-]+:\d+/.test(s)) return FD.searchUrl(s, engine);
     if (!/\s/.test(s)) {
-      if (/^(localhost|\d{1,3}(\.\d{1,3}){3})(:\d+)?(\/.*)?$/i.test(s)) return 'http://' + s;
-      if (/^[\w-]+(\.[\w-]+)+(:\d+)?([/?#].*)?$/.test(s) && /\.[a-z]{2,}(:\d+)?([/?#]|$)/i.test(s)) return 'https://' + s;
+      if (/^(localhost|\d{1,3}(\.\d{1,3}){3}|\[[0-9a-f:]+\])(:\d+)?([/?#].*)?$/i.test(s)) return 'http://' + s;
+      if (/^[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)+(:\d+)?([/?#].*)?$/u.test(s) && /\.[\p{L}]{2,}(:\d+)?([/?#]|$)/u.test(s)) return 'https://' + s;
+      if (/^[\w-]+(:\d+)?\/.*$/.test(s)) return 'http://' + s;          // intranet/wiki
+    } else if (/^[\w-]+(\.[\w-]+)+\/\S/.test(s)) {
+      return 'https://' + encodeURI(s);                               // example.com/a b
     }
     return FD.searchUrl(s, engine);
   };
@@ -88,6 +91,9 @@ window.FD = window.FD || {};
   // The "open in a new tab" modifier: Cmd on a Mac (where Ctrl+click is a right-click), Ctrl elsewhere.
   FD.isMac = () => document.documentElement.dataset.platform === 'darwin';
   FD.newTabClick = (e) => (FD.isMac() ? e.metaKey : e.ctrlKey);
+
+  // Drop the text-fragment directive we add when reopening a clip's source.
+  FD.cleanUrl = (u) => String(u || '').replace(/#:~:text=[^#]*$/, '');
 
   FD.debounce = function (fn, ms) {
     let t = null;

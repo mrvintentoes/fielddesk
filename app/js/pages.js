@@ -52,7 +52,7 @@
           let nameEl, urlEl;
           const add = () => {
             const url = FD.toUrl(urlEl.value, s.settings.engine);
-            if (!url || !FD.isWeb(url) || url.startsWith(FD.ENGINES[s.settings.engine].url)) { urlEl.focus(); return; }
+            if (!url || !FD.isWeb(url) || url.startsWith(FD.ENGINES[s.settings.engine].url)) { urlEl.focus(); FD.toast('That does not look like a web address'); return; }
             s.pinnedSites.push({ title: nameEl.value.trim() || FD.host(url), url }); adding = false; drawTiles(); FD.save();
           };
           tiles.appendChild(h('div', { class: 'tile tile-form' },
@@ -65,16 +65,19 @@
         }
       };
       drawTiles();
+      const lead = FD.lead();
+      const quote = lead && lead.loaded ? FD.randomQuote(lead) : null;
       const others = s.order.map((id) => s.workspaces[id]).filter((x) => x && x.id !== w.id && x.kind !== 'loose' && (!resume || x.id !== resume.id)).slice(0, 4);
       page.appendChild(h('div', { class: 'page-inner nt' },
         h('div', { class: 'nt-mark' }, 'Field Desk'),
-        w.kind === 'loose' ? h('p', { class: 'nt-sub' }, 'One question, twenty tabs.') : h('p', { class: 'nt-sub' }, w.name + (w.question ? ': ' + w.question : '')),
+        w.kind === 'loose' ? h('p', { class: 'nt-sub' }, lead && lead.theme && s.settings.themes !== false ? 'One question, twenty tabs. ' + lead.theme.label + ', by ' + lead.name + '.' : 'One question, twenty tabs.') : h('p', { class: 'nt-sub' }, w.name + (w.question ? ': ' + w.question : '')),
         search,
         resume ? h('button', { class: 'nt-resume', id: 'resume-btn', title: 'Reopen this workspace with its tabs, split view, pins and notes', onclick: () => FD.openWorkspace(resume.id) },
           h('span', { class: 'nt-resume-label' }, 'Resume'),
           h('span', { class: 'nt-resume-name' }, resume.name),
           resume.question ? h('span', { class: 'nt-resume-q' }, resume.question) : null,
           h('span', { class: 'muted small' }, resume.tabs.length + ' tab' + (resume.tabs.length === 1 ? '' : 's') + ' · last open ' + FD.ago(resume.updatedAt))) : null,
+        quote ? h('div', { class: 'nt-quote' }, FD.quoteCard(quote, true), h('div', { class: 'muted small' }, lead.name)) : null,
         h('h3', { class: 'nt-h' }, 'Pinned sites'),
         tiles,
         others.length ? h('h3', { class: 'nt-h' }, 'Other workspaces') : null,
@@ -171,8 +174,12 @@
             h('button', { class: 'btn', onclick: () => FD.exportMarkdown() }, 'Export my reasoning as Markdown'), ' ',
             h('button', { class: 'btn quiet', id: 'ulm-again', onclick: () => { u.stage = 1; u.choice = null; u.why = ''; u.changeMind = ''; u.reflection = ''; u.committed = false; view = 1; FD.save(); draw(); page.scrollTop = 0; FD.refreshPages('fielddesk://sources'); } }, 'Play it again')));
       }
-      inner.append(h('details', { class: 'assumptions' }, h('summary', null, 'What this scenario assumes'),
-        h('ul', null, U.assumptions.map((a) => h('li', null, a)))));
+      if (u.committed) {
+        inner.append(h('details', { class: 'assumptions' }, h('summary', null, 'What this scenario assumes'),
+          h('ul', null, U.assumptions.map((a) => h('li', null, a)))));
+      } else {
+        inner.append(h('p', { class: 'muted small' }, 'The full list of what this scenario simplifies is shown after you commit, because it would tell you how things went.'));
+      }
       page.appendChild(inner);
       page.scrollTop = scroll;
     };
@@ -193,9 +200,9 @@
         h('div', { class: 'source-title' }, s.url ? FD.link(t, s.url, s.title) : h('span', null, s.title),
           s.kind === 'print' ? h('span', { class: 'tag' }, 'print') : null),
         h('div', { class: 'muted small' }, [s.author, s.year].filter(Boolean).join(', ')),
-        s.note ? h('div', { class: 'small' }, s.note) : null))),
-      h('h2', null, 'What the scenario assumes'),
-      h('ul', null, U.assumptions.map((a) => h('li', null, a))),
+        s.note && u.committed ? h('div', { class: 'small' }, s.note) : null))),
+      u.committed ? h('h2', null, 'What the scenario assumes') : null,
+      u.committed ? h('ul', null, U.assumptions.map((a) => h('li', null, a))) : h('p', { class: 'muted small' }, 'Notes on each source, and the list of what the scenario simplifies, appear here once you have committed.'),
       h('p', { class: 'muted small' }, 'Summaries in the scenario are Field Desk’s own wording, not quotations. Figures are approximate and vary between accounts.')));
   }
 
@@ -204,7 +211,7 @@
     const w = FD.ws();
     const page = h('div', { class: 'page page-speech' });
     const TOTAL = 60;
-    let left = TOTAL, timer = null, startedAt = 0, base = TOTAL;
+    let left = TOTAL, timer = null, startedAt = 0, base = TOTAL, logged = false;
     const R = 88, C = 2 * Math.PI * R;
     const clock = h('div', { class: 'clock' });
     clock.innerHTML = '<svg viewBox="0 0 200 200" aria-hidden="true"><circle class="ring-bg" cx="100" cy="100" r="' + R + '"/><circle class="ring" cx="100" cy="100" r="' + R + '" transform="rotate(-90 100 100)" stroke-dasharray="' + C + '" stroke-dashoffset="0"/></svg>';
@@ -236,11 +243,12 @@
     };
     const stop = (record) => {
       clearInterval(timer); timer = null;
-      if (record && left < TOTAL) { w.speech.attempts.unshift({ ts: Date.now(), secs: Math.round(TOTAL - left), full: left <= 0 }); w.speech.attempts = w.speech.attempts.slice(0, 50); FD.touch(); drawLog(); }
+      if (record && left < TOTAL && !logged) {
+        logged = true; w.speech.attempts.unshift({ ts: Date.now(), secs: Math.round(TOTAL - left), full: left <= 0 }); w.speech.attempts = w.speech.attempts.slice(0, 50); FD.touch(); drawLog(); }
       paint();
     };
     const tick = () => {
-      if (!page.isConnected) { clearInterval(timer); timer = null; return; }
+      if (!FD.tab(t.id) || FD.tab(t.id).url !== 'fielddesk://speech') { clearInterval(timer); timer = null; return; } // tab closed or workspace changed
       left = Math.max(0, base - (Date.now() - startedAt) / 1000);
       if (left <= 0) { stop(true); beep(); }
       paint();
@@ -248,6 +256,7 @@
     startBtn.onclick = () => {
       if (timer) { clearInterval(timer); timer = null; paint(); return; }
       if (left <= 0) left = TOTAL;
+      if (left === TOTAL) logged = false;
       base = left; startedAt = Date.now(); timer = setInterval(tick, 100); paint();
     };
     page.appendChild(h('div', { class: 'page-inner narrow speech' },
@@ -257,7 +266,7 @@
         h('textarea', { class: 'question', rows: '2', value: w.question, placeholder: 'One sentence.', oninput: (e) => { w.question = e.target.value; FD.touch(); } })),
       clock,
       h('p', { class: 'actions centre' }, startBtn, ' ',
-        h('button', { class: 'btn', id: 'speech-reset', onclick: () => { stop(true); left = TOTAL; paint(); } }, 'Stop and reset')),
+        h('button', { class: 'btn', id: 'speech-reset', onclick: () => { stop(true); left = TOTAL; logged = false; paint(); } }, 'Stop and reset')),
       h('label', { class: 'field' }, h('span', { class: 'field-label' }, 'Three points, no more'),
         h('textarea', { rows: '5', value: w.speech.points, placeholder: '1.\n2.\n3.', oninput: (e) => { w.speech.points = e.target.value; FD.touch(); } })),
       log));
