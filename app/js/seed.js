@@ -75,7 +75,7 @@ FD.repairState = function (s) {
     const blank = FD.newWorkspace({ id: w.id });
     for (const k of Object.keys(blank)) if (w[k] == null) w[k] = blank[k];
     if (!w.tabs.length) w.tabs = blank.tabs;
-    w.tabs.forEach((t) => { delete t.webUrl; });
+    w.tabs.forEach((t) => { delete t.webUrl; if (t.favicon && !/^data:image\//.test(t.favicon)) t.favicon = null; });
     if (!w.tabs.some((t) => t.id === w.active)) w.active = w.tabs[0].id;
     w.pins = (w.pins || []).filter((id) => FD.commander(id)).slice(0, 2);
   }

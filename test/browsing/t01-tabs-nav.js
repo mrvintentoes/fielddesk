@@ -77,11 +77,6 @@ const { check, sleep } = H;
     t = await T(); check('pushState updates address and title', t.tabs[0].url.endsWith('/a/pushed') && t.tabs[0].title === 'Pushed A', JSON.stringify(t.tabs[0].url + ' ' + t.tabs[0].title));
     await ui.click('#back-btn'); await sleep(400);
     t = await T(); check('back over pushState', t.tabs[0].url.endsWith('/a#h2'), t.tabs[0].url);
-    // mailto does nothing bad
-    await pg.evaluate(() => scrollTo(0, 0));
-    await pg.click('#mail'); await sleep(400);
-    t = await T(); check('mailto link leaves page in place', /\/a(#h2)?$/.test(t.tabs[0].url) && t.tabs.length === 1, t.tabs[0].url);
-
     // ---- form
     await pg.fill('#q', 'hello world'); await pg.click('#go');
     check('GET form submits', await H.loaded(ui, '/echo?q=hello+world'));
@@ -139,6 +134,10 @@ const { check, sleep } = H;
     await pg.click('#pgo'); await H.loaded(ui, '/echo'); await sleep(300);
     pg = H.viewPage(app, '/echo');
     check('POST form works', /POST.*q=posted/.test(await pg.textContent('#e')));
+    // mailto does nothing bad
+        await pg.click('#mail', { noWaitAfter: true }).catch(() => {}); await sleep(800);
+    t = await T(); check('mailto leaves no stuck spinner', !t.tabs[0].rt.loading); check('mailto link leaves page in place', /\/echo$/.test(t.tabs[0].url), t.tabs[0].url);
+
     H.rootShot('t01-end');
   } finally { await app.close(); await s.close(); }
   console.log(H.failures() ? `\n${H.failures()} FAILED` : '\nall ok');

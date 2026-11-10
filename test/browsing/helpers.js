@@ -99,7 +99,7 @@ async function waitFor(fn, ms, step) {
   for (;;) { let v; try { v = await fn(); } catch (_) { v = false; } if (v) return v; if (Date.now() > end) return false; await lib.sleep(step || 100); }
 }
 // The Playwright page for a live view, by URL substring.
-function viewPage(app, part) { return app.windows().find((w) => w.url().includes(part)); }
+function viewPage(app, part) { return app.windows().find((w) => /^https?:/.test(w.url()) && w.url().includes(part)); }
 function rootShot(name) { const f = path.join(SHOTS, name + '.png'); try { execSync('import -window root ' + JSON.stringify(f)); } catch (e) { console.log('  (root shot failed)'); } return f; }
 function freshProfile(name, keep) { const d = path.join(SCRATCH, 'profiles', name); if (!keep) fs.rmSync(d, { recursive: true, force: true }); fs.mkdirSync(d, { recursive: true }); return d; }
 async function loose(ui) { await ui.evaluate(() => FD.openWorkspace('loose')); await lib.sleep(300); }

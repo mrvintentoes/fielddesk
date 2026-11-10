@@ -6,16 +6,16 @@ commanders, clipped passages, side-by-side sources and research sessions you can
 
 ## Launch
 
-You need [Node.js](https://nodejs.org) 20 or newer. From a fresh clone:
+You need [Node.js](https://nodejs.org) 22.12 or newer (`node -v` to check; on a Mac, `brew install node` or the installer from nodejs.org). From a fresh clone:
 
 ```sh
 npm install
 npm start
 ```
 
-That is the whole procedure on macOS, Windows and Linux. `npm install` downloads the Electron
-runtime for your machine (about 100 MB, once). On macOS the app opens as "Electron" in the Dock
-the first time; that is expected for an app run from source.
+That is the whole procedure on macOS, Windows and Linux. The first `npm start` downloads the
+Electron runtime for your machine (about 100 MB, once), then the window opens. On macOS the Dock
+and menu bar say "Electron" because the app is run from source; quit with `Cmd+Q`.
 
 ## Where to click first
 

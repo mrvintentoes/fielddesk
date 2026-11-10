@@ -6,6 +6,9 @@
   "main": "src/main.js",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "node bin/launch.js",
     "test": "node test/restart.js"

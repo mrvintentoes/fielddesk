@@ -246,7 +246,7 @@
       const shown = t.id === w.active || (w.split.on && t.id === w.split.right);
       const icon = r.loading && !FD.isInternal(t.url)
         ? h('span', { class: 'tab-spin' })
-        : (t.favicon ? h('img', { class: 'tab-icon', src: t.favicon, alt: '', onerror: (e) => { e.target.style.visibility = 'hidden'; } })
+        : (t.favicon && /^data:image\//.test(t.favicon) ? h('img', { class: 'tab-icon', src: t.favicon, alt: '', onerror: (e) => { e.target.style.visibility = 'hidden'; } })
           : h('span', { class: 'tab-glyph' }, FD.isInternal(t.url) ? '✦' : '◦'));
       const el = h('div', {
         class: 'tab' + (t.id === focusId ? ' active' : '') + (shown && t.id !== focusId ? ' shown' : ''),
@@ -652,7 +652,7 @@
       else if (!r.error) {
         if (FD.isWeb(u.url)) t.url = u.url;
         if (u.title && !/^about:blank/.test(u.title)) t.title = u.title;
-        t.favicon = u.favicon || (u.loading ? t.favicon : null);
+        t.favicon = (u.favicon && /^data:image\//.test(u.favicon)) ? u.favicon : (u.loading ? t.favicon : null);
         const hi = S.state.history.find((x) => x.url === t.url); if (hi && t.title) hi.title = t.title;
         const node = FD.ws().trail.nodes.find((n) => n.id === FD.ws().trail.cur[t.id]); if (node && node.url === t.url && t.title) node.title = t.title;
       }
@@ -709,7 +709,7 @@
       href: '#', class: cls || 'link', 'data-url': url, title: url,
       onclick: (e) => {
         e.preventDefault();
-        if (e.ctrlKey || e.metaKey) FD.newTab(url, { background: true, openerId: t && t.id });
+        if (FD.newTabClick(e)) FD.newTab(url, { background: true, openerId: t && t.id });
         else if (t && FD.tab(t.id)) FD.navigate(t, url); else FD.newTab(url);
       },
       onauxclick: (e) => { if (e.button === 1) { e.preventDefault(); FD.newTab(url, { background: true, openerId: t && t.id }); } }

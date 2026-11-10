@@ -267,11 +267,11 @@
 
   // ------------------------------------------------------------ about
   function pageAbout(t) {
-    const mac = /Mac/.test(navigator.platform);
-    const k = (s) => h('kbd', null, mac ? s.replace(/Ctrl\+/g, '⌘').replace(/Alt\+/g, '⌥').replace(/Shift\+/g, '⇧') : s);
+    const mac = FD.isMac();
+    const k = (s) => h('kbd', null, mac && !/[⌃⌘]/.test(s) ? s.replace(/Ctrl\+/g, '⌘').replace(/Alt\+/g, '⌥').replace(/Shift\+/g, '⇧') : s);
     const rows = [
       ['New tab', 'Ctrl+T'], ['Close tab', 'Ctrl+W'], ['Reopen closed tab', 'Ctrl+Shift+T'], ['Address and search bar', 'Ctrl+L'],
-      ['Next and previous tab', mac ? 'Ctrl+Tab, Ctrl+Shift+Tab' : 'Ctrl+Tab, Ctrl+Shift+Tab'], ['Jump to tab 1 to 8, last tab', 'Ctrl+1 … Ctrl+9'],
+      ['Next and previous tab', mac ? '⌃Tab, ⌃⇧Tab (or ⌥⌘→, ⌥⌘←)' : 'Ctrl+Tab, Ctrl+Shift+Tab'], ['Jump to tab 1 to 8, last tab', 'Ctrl+1 … Ctrl+9'],
       ['Back and forward', mac ? 'Ctrl+[ , Ctrl+]' : 'Alt+Left, Alt+Right'], ['Reload', 'Ctrl+R'], ['Find in page', 'Ctrl+F'], ['Bookmark this page', 'Ctrl+D'],
       ['Zoom in, out, reset', 'Ctrl+= , Ctrl+- , Ctrl+0'], ['Split view', 'Ctrl+\\'], ['Collapse or show the desk rail', 'Ctrl+.'], ['Open or close the drawer', 'Ctrl+Shift+.'],
       ['Save the selected line to notes', 'Ctrl+Shift+L'], ['Export notes as Markdown', 'Ctrl+Shift+E']

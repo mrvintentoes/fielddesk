@@ -61,7 +61,9 @@ function queueState(state) {
 // ---------------------------------------------------------------- helpers
 const ui = () => (win && !win.isDestroyed() ? win.webContents : null);
 function send(channel, payload) { const w = ui(); if (w && !w.isDestroyed()) w.send(channel, payload); }
-function fromUi(e) { return win && !win.isDestroyed() && e.sender === win.webContents; }
+function fromUi(e) {
+  return !!win && !win.isDestroyed() && e.sender === win.webContents && (!e.senderFrame || e.senderFrame === win.webContents.mainFrame);
+}
 function handle(channel, fn) {
   ipcMain.handle(channel, (e, payload) => { if (!fromUi(e)) throw new Error('forbidden'); return fn(payload || {}); });
 }
@@ -71,7 +73,12 @@ function nav(wc) { return wc.navigationHistory || wc; }
 function canBack(wc) { const n = nav(wc); return n.canGoBack ? n.canGoBack() : false; }
 function canFwd(wc) { const n = nav(wc); return n.canGoForward ? n.canGoForward() : false; }
 
+// Coalesce bursts (a page spinning document.title must not churn the UI or the disk).
 function tabUpdate(id) {
+  const t = tabs.get(id); if (!t || t.updateTimer) return;
+  t.updateTimer = setTimeout(() => { t.updateTimer = null; tabUpdateNow(id); }, 40);
+}
+function tabUpdateNow(id) {
   const t = tabs.get(id); if (!t) return;
   const wc = t.view.webContents; if (wc.isDestroyed()) return;
   send('tab:update', {
@@ -80,13 +87,30 @@ function tabUpdate(id) {
   });
 }
 
+// Favicons are fetched here, inside the web session, and handed to the UI as inert data.
+// The app's own window never requests anything from a site.
+async function loadFavicon(t, icons) {
+  const url = (icons || []).find(isWebUrl);
+  t.faviconUrl = url || null;
+  if (!url) { t.favicon = null; tabUpdate(t.id); return; }
+  try {
+    const res = await session.fromPartition(WEB_PARTITION).fetch(url, { credentials: 'omit' });
+    const type = (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (t.faviconUrl !== url || !tabs.has(t.id)) return;
+    const ok = res.ok && buf.length > 0 && buf.length <= 24 * 1024 && /^image\/(png|x-icon|vnd\.microsoft\.icon|jpeg|gif|webp|svg\+xml)$/.test(type);
+    t.favicon = ok ? 'data:' + type + ';base64,' + buf.toString('base64') : null;
+  } catch (_) { t.favicon = null; }
+  tabUpdate(t.id);
+}
+
 // ---------------------------------------------------------------- tab views
 function createTab(id, url) {
   if (tabs.has(id)) return tabs.get(id);
   const view = new WebContentsView({
     webPreferences: {
       partition: WEB_PARTITION, sandbox: true, contextIsolation: true, nodeIntegration: false,
-      webSecurity: true, allowRunningInsecureContent: false, spellcheck: false
+      webSecurity: true, allowRunningInsecureContent: false, spellcheck: false, safeDialogs: true
     }
   });
   view.setBackgroundColor('#ffffff');
@@ -96,7 +120,13 @@ function createTab(id, url) {
   tabs.set(id, t);
   const wc = view.webContents;
 
+  const opens = [];
   wc.setWindowOpenHandler((details) => {
+    // A page may ask for a few new tabs, not a flood of them.
+    const now = Date.now();
+    while (opens.length && now - opens[0] > 4000) opens.shift();
+    if (opens.length >= 5) return { action: 'deny' };
+    opens.push(now);
     if (isWebUrl(details.url)) {
       send('tab:open', { url: details.url, openerId: id, background: details.disposition === 'background-tab' });
     }
@@ -106,8 +136,8 @@ function createTab(id, url) {
   wc.on('did-start-loading', () => tabUpdate(id));
   wc.on('did-stop-loading', () => tabUpdate(id));
   wc.on('page-title-updated', () => tabUpdate(id));
-  wc.on('page-favicon-updated', (_e, icons) => { t.favicon = (icons || []).find(isWebUrl) || null; tabUpdate(id); });
-  wc.on('did-navigate', (_e, navUrl) => { t.favicon = null; send('tab:navigated', { id, url: navUrl }); tabUpdate(id); });
+  wc.on('page-favicon-updated', (_e, icons) => { loadFavicon(t, icons); });
+  wc.on('did-navigate', (_e, navUrl) => { t.favicon = null; t.faviconUrl = null; send('tab:navigated', { id, url: navUrl }); tabUpdate(id); });
   wc.on('did-navigate-in-page', (_e, navUrl, isMainFrame) => { if (isMainFrame) tabUpdate(id); });
   wc.on('did-fail-load', (_e, code, desc, failedUrl, isMainFrame) => {
     if (!isMainFrame || code === -3) return; // -3 = aborted (e.g. a newer navigation replaced it)
@@ -219,6 +249,10 @@ function popupPageMenu(tpl) {
 function buildAppMenu() {
   const cmd = (name, extra) => () => send('cmd', Object.assign({ name }, extra || {}));
   const item = (label, accelerator, name, extra) => ({ label, accelerator, click: cmd(name, extra) });
+  // Second bindings for the same command. On macOS the menu bar is always visible, so they are
+  // hidden there (hidden items keep their accelerators on macOS); pcOnly ones are left out entirely.
+  const alias = (label, accelerator, name, extra) => Object.assign(item(label, accelerator, name, extra), isMac ? { visible: false } : {});
+  const pcOnly = (...items) => (isMac ? [] : items);
   const tabNumbers = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => item('Tab ' + n, 'CmdOrCtrl+' + n, 'tab-index', { index: n - 1 }));
   const tpl = [
     ...(isMac ? [{ role: 'appMenu' }] : []),
@@ -230,8 +264,8 @@ function buildAppMenu() {
         item('Reopen Closed Tab', 'CmdOrCtrl+Shift+T', 'reopen-tab'),
         { type: 'separator' },
         item('Open Location', 'CmdOrCtrl+L', 'focus-address'),
-        ...(isMac ? [] : [item('Open Location (Alt+D)', 'Alt+D', 'focus-address')]),
-        item('Search the Web', 'CmdOrCtrl+K', 'focus-address'),
+        ...pcOnly(item('Open Location (Alt+D)', 'Alt+D', 'focus-address')),
+        ...pcOnly(item('Search the Web', 'Ctrl+K', 'focus-address')),
         { type: 'separator' },
         item('Export Notes as Markdown…', 'CmdOrCtrl+Shift+E', 'export'),
         { type: 'separator' },
@@ -243,11 +277,11 @@ function buildAppMenu() {
       label: 'View',
       submenu: [
         item('Reload', 'CmdOrCtrl+R', 'reload'),
-        item('Reload (F5)', 'F5', 'reload'),
+        ...pcOnly(item('Reload (F5)', 'F5', 'reload')),
         item('Hard Reload', 'CmdOrCtrl+Shift+R', 'hard-reload'),
         { type: 'separator' },
         item('Zoom In', 'CmdOrCtrl+=', 'zoom-in'),
-        item('Zoom In (+)', 'CmdOrCtrl+Plus', 'zoom-in'),
+        alias('Zoom In (+)', 'CmdOrCtrl+Plus', 'zoom-in'),
         item('Zoom Out', 'CmdOrCtrl+-', 'zoom-out'),
         item('Actual Size', 'CmdOrCtrl+0', 'zoom-reset'),
         { type: 'separator' },
@@ -257,7 +291,7 @@ function buildAppMenu() {
         { type: 'separator' },
         { role: 'togglefullscreen' },
         item('Developer Tools for Page', isMac ? 'Alt+Cmd+I' : 'Ctrl+Shift+I', 'devtools'),
-        item('Developer Tools (F12)', 'F12', 'devtools')
+        ...pcOnly(item('Developer Tools (F12)', 'F12', 'devtools'))
       ]
     },
     {
@@ -276,9 +310,8 @@ function buildAppMenu() {
       submenu: [
         item('Next Tab', 'Ctrl+Tab', 'next-tab'),
         item('Previous Tab', 'Ctrl+Shift+Tab', 'prev-tab'),
-        item('Next Tab (Page Down)', 'CmdOrCtrl+PageDown', 'next-tab'),
-        item('Previous Tab (Page Up)', 'CmdOrCtrl+PageUp', 'prev-tab'),
-        ...(isMac ? [item('Next Tab (Cmd+Opt+Right)', 'Alt+Cmd+Right', 'next-tab'), item('Previous Tab (Cmd+Opt+Left)', 'Alt+Cmd+Left', 'prev-tab')] : []),
+        ...pcOnly(item('Next Tab (Page Down)', 'Ctrl+PageDown', 'next-tab'), item('Previous Tab (Page Up)', 'Ctrl+PageUp', 'prev-tab')),
+        ...(isMac ? [alias('Next Tab (Cmd+Opt+Right)', 'Alt+Cmd+Right', 'next-tab'), alias('Previous Tab (Cmd+Opt+Left)', 'Alt+Cmd+Left', 'prev-tab')] : []),
         { type: 'separator' },
         ...tabNumbers,
         item('Last Tab', 'CmdOrCtrl+9', 'tab-index', { index: -1 })
@@ -329,7 +362,12 @@ function registerIpc() {
   });
   handle('tab:selection', async ({ id }) => {
     const t = tabs.get(id); if (!t) return '';
-    try { return String(await t.view.webContents.executeJavaScript('String(window.getSelection ? window.getSelection() : "")', true)).slice(0, 20000); } catch (_) { return ''; }
+    // Runs in an isolated world, so the page cannot substitute its own getSelection, and is time-limited.
+    try {
+      const read = t.view.webContents.executeJavaScriptInIsolatedWorld(999, [{ code: 'String(window.getSelection())' }], false);
+      const text = await Promise.race([read, new Promise((r) => setTimeout(() => r(''), 1500))]);
+      return String(text || '').slice(0, 20000);
+    } catch (_) { return ''; }
   });
 
   handle('layout:set', (next) => { layout = { panes: Array.isArray(next.panes) ? next.panes : [] }; applyLayout(); return true; });
@@ -423,7 +461,10 @@ function hardenSessions() {
 // Any webContents we did not create ourselves (there should be none) may not attach webviews or open windows.
 app.on('web-contents-created', (_e, wc) => {
   wc.on('will-attach-webview', (e) => e.preventDefault());
+  wc.setWindowOpenHandler(() => ({ action: 'deny' })); // tab views replace this with their own handler
 });
+// Never offer a client certificate to a site on the user's behalf.
+app.on('select-client-certificate', (e, _wc, _url, _list, cb) => { e.preventDefault(); cb(); });
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -431,6 +472,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });
   app.whenReady().then(() => {
     hardenSessions();
+    app.setAboutPanelOptions({ applicationName: 'Field Desk', applicationVersion: app.getVersion() });
     registerIpc();
     buildAppMenu();
     createWindow();

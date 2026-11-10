@@ -78,9 +78,12 @@
   };
 
   // ------------------------------------------------------------ Markdown export
-  const mdEsc = (s) => String(s || '').replace(/([\[\]])/g, '\\$1');
-  const mdLink = (title, url) => (url ? '[' + mdEsc(title || url) + '](' + String(url).replace(/\)/g, '%29').replace(/ /g, '%20') + ')' : mdEsc(title || ''));
-  const mdQuote = (s) => String(s).split('\n').map((l) => '> ' + l).join('\n');
+  // Everything that came from a web page (titles, URLs, clipped text) is escaped, so a page
+  // cannot smuggle links, images or HTML into the exported file.
+  const mdEsc = (s) => String(s || '').replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/[\\`*_{}\[\]()<>#+!|~]/g, '\\$&').replace(/&/g, '&amp;');
+  const mdUrl = (u) => String(u || '').replace(/[\s<>()\[\]\\"`]/g, (c) => encodeURIComponent(c).replace(/[()]/g, (x) => '%' + x.charCodeAt(0).toString(16)));
+  const mdLink = (title, url) => (url ? '[' + mdEsc(title || url) + '](' + mdUrl(url) + ')' : mdEsc(title || ''));
+  const mdQuote = (s) => String(s).split(/\r\n|[\r\n\u2028\u2029]/).map((l) => '> ' + mdEsc(l).replace(/^(\s*)(\d+)\./, '$1$2\\.').replace(/^(\s*)-/, '$1\\-')).join('\n');
 
   FD.buildMarkdown = function (w) {
     w = w || FD.ws();
@@ -447,7 +450,7 @@
   function panelBookmarks() {
     const s = S.state;
     const row = (x, remove) => h('div', { class: 'mark-row' },
-      h('a', { href: '#', class: 'mark-link', title: x.url, onclick: (e) => { e.preventDefault(); if (e.ctrlKey || e.metaKey) FD.newTab(x.url, { background: true }); else FD.navigate(FD.current(), x.url, { typed: true }); } },
+      h('a', { href: '#', class: 'mark-link', title: x.url, onclick: (e) => { e.preventDefault(); if (FD.newTabClick(e)) FD.newTab(x.url, { background: true }); else FD.navigate(FD.current(), x.url, { typed: true }); } },
         h('span', { class: 'mark-title' }, FD.trunc(x.title || x.url, 52)), h('span', { class: 'mark-host' }, FD.host(x.url))),
       remove ? h('button', { class: 'x', title: 'Remove', onclick: remove }, '×') : null);
     return [

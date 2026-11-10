@@ -85,6 +85,10 @@ window.FD = window.FD || {};
     return url + '#:~:text=' + encodeURIComponent(words);
   };
 
+  // The "open in a new tab" modifier: Cmd on a Mac (where Ctrl+click is a right-click), Ctrl elsewhere.
+  FD.isMac = () => document.documentElement.dataset.platform === 'darwin';
+  FD.newTabClick = (e) => (FD.isMac() ? e.metaKey : e.ctrlKey);
+
   FD.debounce = function (fn, ms) {
     let t = null;
     const d = (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
